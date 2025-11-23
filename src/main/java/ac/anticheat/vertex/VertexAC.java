@@ -11,14 +11,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class VertexAC extends JavaPlugin {
     private static VertexAC instance;
-    private GatekeeperListener gatekeeperListener;
+    private ConnectionListener connectionListener;
     private CheckManager checkManager;
     private VEventManager eventManager;
 
     @Override
     public void onEnable() {
         instance = this;
-        gatekeeperListener = new GatekeeperListener();
+        connectionListener = new ConnectionListener();
         checkManager = new CheckManager();
         eventManager = new VEventManager();
         saveDefaultConfig();
@@ -28,7 +28,7 @@ public class VertexAC extends JavaPlugin {
         getLogger().info("Vertex loaded");
 
         getServer().getOnlinePlayers().forEach(player -> {
-            gatekeeperListener.getPlayers().put(player.getEntityId(), player);
+            connectionListener.getPlayers().put(player.getEntityId(), player);
             checkManager.registerChecks(player);
         });
 
@@ -54,15 +54,15 @@ public class VertexAC extends JavaPlugin {
 
     private void registerBukkitListeners() {
         getServer().getPluginManager().registerEvents(new TickListener(), this);
-        getServer().getPluginManager().registerEvents(gatekeeperListener, this);
+        getServer().getPluginManager().registerEvents(connectionListener, this);
     }
 
     public static VertexAC getInstance() {
         return instance;
     }
 
-    public static GatekeeperListener getGatekeeperListener() {
-        return instance.gatekeeperListener;
+    public static ConnectionListener getConnectionListener() {
+        return instance.connectionListener;
     }
 
     public static CheckManager getCheckManager() {

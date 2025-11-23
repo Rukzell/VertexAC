@@ -7,9 +7,6 @@ import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
-/**
- * округление
- */
 public class AimB extends Check implements PacketCheck {
     public AimB(APlayer aPlayer) {
         super("AimB", aPlayer);
@@ -46,7 +43,7 @@ public class AimB extends Check implements PacketCheck {
             if (pitchRounded || yawRounded) {
                 buffer++;
                 if (buffer > maxBuffer) {
-                    flag("округление");
+                    flag(String.format("dYaw=%.5f\ndPitch=%.5f", deltaYaw, deltaPitch));
                     buffer = 0;
                 }
             } else {

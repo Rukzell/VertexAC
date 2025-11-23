@@ -36,7 +36,7 @@ public class AimI extends Check implements PacketCheck {
                 if (yawStreak > 2) {
                     buffer1++;
                     if (buffer1 > maxBuffer) {
-                        flag();
+                        flag(String.format("streakYaw=%d", yawStreak));
                         buffer1 = 0;
                     }
                 } else {
@@ -51,7 +51,7 @@ public class AimI extends Check implements PacketCheck {
                 if (pitchStreak > 2) {
                     buffer2++;
                     if (buffer2 > maxBuffer) {
-                        flag();
+                        flag(String.format("streakPitch=%d", pitchStreak));
                         buffer2 = 0;
                     }
                     pitchStreak = 0;

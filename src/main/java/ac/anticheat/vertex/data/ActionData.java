@@ -34,7 +34,7 @@ public class ActionData extends Check implements PacketCheck {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             lastAttack = System.nanoTime();
             attack = true;
-            pTarget = VertexAC.getGatekeeperListener().getPlayerById(wrapper.getEntityId());
+            pTarget = VertexAC.getConnectionListener().getPlayerById(wrapper.getEntityId());
             return;
         }
 

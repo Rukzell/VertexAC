@@ -24,10 +24,16 @@ public abstract class Check {
     private final String punishCommand;
     private boolean alert;
     private int violations;
+    private int decay = Config.getInt(getConfigPath() + ".decay", 1);
     private int maxViolations;
     public int hitCancelTicks;
     public int hitTicksToCancel;
     private Plugin plugin;
+    private String prefix = Config.getString("vertex.prefix", "vertex.prefix");
+    private String rawMessage = Config.getString("alerts.message", "alerts.message");
+
+    private long delayTaskRawDelay = Config.getInt(getConfigPath() + ".remove-violations-after", 300);
+    private long delayTaskDelay = delayTaskRawDelay * 20;
 
     private BukkitTask decayTask;
 
@@ -39,7 +45,7 @@ public abstract class Check {
         this.punishCommand = Config.getString("checks." + name + ".punish-command", "kick {player} #ff7b42Unfair Advantage");
         this.alert = Config.getBoolean("checks." + name + ".alert", true);
         this.maxViolations = Config.getInt("checks." + name + ".max-violations", 10);
-        this.hitCancelTicks = Config.getInt("checks." + name + ".hit-cancel-ticks", 20);
+        this.hitCancelTicks = Config.getInt("checks." + name + ".hit-cancel-ticks", 0);
         this.hitTicksToCancel = 0;
         this.plugin = VertexAC.getInstance();
 
@@ -62,11 +68,9 @@ public abstract class Check {
             aPlayer.kaNpcVl++;
         }
 
-        String rawMessage = Config.getString("alerts.message", "alerts.message");
-
         Component message = MessageUtils.parseMessage(
                 rawMessage
-                        .replace("{prefix}", Config.getString("vertex.prefix", "vertex.prefix"))
+                        .replace("{prefix}", prefix)
                         .replace("{player}", aPlayer.bukkitPlayer.getName())
                         .replace("{check}", name)
                         .replace("{violations}", String.valueOf(violations))
@@ -102,21 +106,15 @@ public abstract class Check {
     }
 
     private void startDecayTask() {
-        long rawDelay = Config.getInt(getConfigPath() + ".remove-violations-after", 300);
-        long delay = rawDelay * 20;
-
         this.decayTask = new BukkitRunnable() {
             @Override
             public void run() {
                 if (violations > 0) {
-                    int decay = Config.getInt(getConfigPath() + ".decay", 1);
-                    int oldViolations = violations;
-
                     violations -= decay;
                     if (violations < 0) violations = 0;
                 }
             }
-        }.runTaskTimer(VertexAC.getInstance(), delay, delay);
+        }.runTaskTimer(VertexAC.getInstance(), delayTaskDelay, delayTaskDelay);
     }
 
     public void runSync(Runnable task) {
@@ -167,5 +165,10 @@ public abstract class Check {
         this.alert = Config.getBoolean(getConfigPath() + ".alert", true);
         this.maxViolations = Config.getInt(getConfigPath() + ".max-violations", 10);
         this.hitCancelTicks = Config.getInt(getConfigPath() + ".hit-cancel-ticks", 20);
+        this.decay = Config.getInt(getConfigPath() + ".decay", 1);
+        this.delayTaskRawDelay = Config.getInt(getConfigPath() + ".remove-violations-after", 300);
+        this.delayTaskDelay = delayTaskRawDelay * 20;
+        this.prefix = Config.getString("vertex.prefix", "vertex.prefix");
+        this.rawMessage = Config.getString("alerts.message", "alerts.message");
     }
 }

@@ -18,7 +18,7 @@ public class AuraC extends Check implements PacketCheck {
         this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 1);
     }
 
-    private final EvictingList<Long> attackDelays = new EvictingList<>(3);
+    private final EvictingList<Long> attackDelays = new EvictingList<>(10);
     private long lastAttackTime;
     private double buffer;
     private double maxBuffer;
@@ -38,7 +38,7 @@ public class AuraC extends Check implements PacketCheck {
                     if (attackDelays.allEqual()) {
                         buffer++;
                         if (buffer > maxBuffer) {
-                            flag("автокликер");
+                            flag();
                             buffer = 0;
                         }
                     } else if (buffer > 0) {

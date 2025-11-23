@@ -10,9 +10,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 import java.util.List;
 
-/**
- * снапы
- */
 public class AimA extends Check implements PacketCheck {
     public AimA(APlayer aPlayer) {
         super("AimA", aPlayer);
@@ -40,7 +37,7 @@ public class AimA extends Check implements PacketCheck {
                     buffer++;
 
                     if (buffer > maxBuffer) {
-                        flag("снапы");
+                        flag(String.format("mid=%.5f\nmin=%.5f", mid, min));
                         buffer = 0;
                     }
                 } else {

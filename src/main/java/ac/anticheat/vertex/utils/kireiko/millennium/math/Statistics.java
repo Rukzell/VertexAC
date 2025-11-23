@@ -183,6 +183,26 @@ public final class Statistics {
         return maxValue;
     }
 
+    public static int getModeInt(final Collection<? extends Number> array) {
+        Map<Integer, Integer> counts = new HashMap<>();
+        for (Number n : array) {
+            int val = n.intValue();
+            counts.put(val, counts.getOrDefault(val, 0) + 1);
+        }
+
+        int mode = array.iterator().next().intValue();
+        int maxCount = 0;
+
+        for (Map.Entry<Integer, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() > maxCount) {
+                mode = entry.getKey();
+                maxCount = entry.getValue();
+            }
+        }
+
+        return mode;
+    }
+
     public static double getMedian(final List<Double> data) {
         if (data.size() % 2 == 0) {
             return (data.get(data.size() / 2) + data.get(data.size() / 2 - 1)) / 2;

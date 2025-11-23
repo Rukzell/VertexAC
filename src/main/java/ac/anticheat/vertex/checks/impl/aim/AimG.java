@@ -4,8 +4,12 @@ import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
+import ac.anticheat.vertex.utils.MathUtil;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AimG extends Check implements PacketCheck {
     public AimG(APlayer aPlayer) {
@@ -14,94 +18,58 @@ public class AimG extends Check implements PacketCheck {
         this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
     }
 
-    private static final float minAmp = 0.009f;
-    private static final float maxAmp = 20.0f;
-    private static final double ampTol = 0.20;
-    private static final int flipsNeed = 5;
-    private float lastDeltaYawABS = 0f;
-    private float lastDeltaYawSigned = 0f;
-    private int altFlipYawStreak = 0;
-    private float lastDeltaPitchABS = 0f;
-    private float lastDeltaPitchSigned = 0f;
-    private int altFlipPitchStreak = 0;
-    private boolean hasPrev = false;
-
     private double buffer;
     private double maxBuffer;
     private double bufferDecrease;
+    private List<Double> deltaYaws = new ArrayList<>();
+    private List<Double> deltaPitches = new ArrayList<>();
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation()) {
-            lastDeltaYawABS = 0f;
-            lastDeltaYawSigned = 0f;
-            altFlipYawStreak = 0;
-            lastDeltaPitchABS = 0f;
-            lastDeltaPitchSigned = 0f;
-            altFlipPitchStreak = 0;
-            hasPrev = false;
             return;
         }
 
         if (PacketUtil.isRotation(event)) {
-            float deltaYaw = aPlayer.rotationData.deltaYaw;
-            float deltaYawABS = Math.abs(deltaYaw);
+            double deltaYaw = Math.abs(aPlayer.rotationData.deltaYaw);
+            double deltaPitch = Math.abs(aPlayer.rotationData.deltaPitch);
 
-            float deltaPitch = aPlayer.rotationData.deltaPitch;
-            float deltaPitchABS = Math.abs(deltaPitch);
+            deltaYaws.add(deltaYaw);
+            deltaPitches.add(deltaPitch);
 
-            if (!hasPrev) {
-                lastDeltaYawSigned = deltaYaw;
-                lastDeltaYawABS = deltaYawABS;
-                lastDeltaPitchSigned = deltaPitch;
-                lastDeltaPitchABS = deltaPitchABS;
-                hasPrev = true;
-                return;
-            }
+            if (deltaYaws.size() == 20) {
+                double ac = MathUtil.autocorrelation(deltaYaws, 1);
+                boolean jitter = MathUtil.hasJitterBreaks(deltaYaws, 0.5);
 
-            boolean validYaw = deltaYawABS >= minAmp && deltaYawABS <= maxAmp;
-            if (validYaw && Math.signum(deltaYaw) != Math.signum(lastDeltaYawSigned)) {
-                double relYaw = Math.abs(deltaYawABS - lastDeltaYawABS) / Math.max(deltaYawABS, lastDeltaYawABS);
-                if (relYaw <= ampTol) {
-                    if (++altFlipYawStreak >= flipsNeed) {
-                        flag();
-                        altFlipYawStreak = flipsNeed / 2;
+                if ((ac < 0.05 || ac > 0.95) && !jitter) {
+                    buffer++;
+                    if (buffer > maxBuffer) {
+                        flag(String.format("yaw\nautocorr=%.5f", ac));
+                        buffer = 0;
                     }
                 } else {
-                    altFlipYawStreak = Math.max(0, altFlipYawStreak - 1);
+                    if (buffer > 0) buffer -= bufferDecrease;
                 }
-            } else if (validYaw) {
-                altFlipYawStreak = Math.max(0, altFlipYawStreak - 1);
-            } else {
-                altFlipYawStreak = Math.max(0, altFlipYawStreak - 1);
-            }
-            lastDeltaYawABS = deltaYawABS;
-            lastDeltaYawSigned = deltaYaw;
 
-            boolean validPitch = deltaPitchABS >= minAmp && deltaPitchABS <= maxAmp;
-            if (validPitch && Math.signum(deltaPitch) != Math.signum(lastDeltaPitchSigned)) {
-                double relPitch = Math.abs(deltaPitchABS - lastDeltaPitchABS) / Math.max(deltaPitchABS, lastDeltaPitchABS);
-                if (relPitch <= ampTol) {
-                    if (++altFlipPitchStreak >= flipsNeed) {
-                        buffer++;
-                        if (buffer > maxBuffer) {
-                            flag();
-                            buffer = 0;
-                        }
-                        altFlipPitchStreak = flipsNeed / 2;
-                    } else {
-                        buffer = Math.max(0, buffer - bufferDecrease);
+                deltaYaws.remove(0);
+            }
+
+            if (deltaPitches.size() > 20) {
+                double ac = MathUtil.autocorrelation(deltaPitches, 1);
+                boolean jitter = MathUtil.hasJitterBreaks(deltaPitches, 0.5);
+
+                if ((ac < 0.05 || ac > 0.95) && !jitter) {
+                    buffer++;
+                    if (buffer > maxBuffer) {
+                        flag(String.format("pitch\nautocorr=%.5f", ac));
+                        buffer = 0;
                     }
                 } else {
-                    altFlipPitchStreak = Math.max(0, altFlipPitchStreak - 1);
+                    if (buffer > 0) buffer -= bufferDecrease;
                 }
-            } else if (validPitch) {
-                altFlipPitchStreak = Math.max(0, altFlipPitchStreak - 1);
-            } else {
-                altFlipPitchStreak = Math.max(0, altFlipPitchStreak - 1);
+
+                deltaPitches.remove(0);
             }
-            lastDeltaPitchABS = deltaPitchABS;
-            lastDeltaPitchSigned = deltaPitch;
         }
     }
 

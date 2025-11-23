@@ -11,9 +11,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * idk
- */
 public class AimC extends Check implements PacketCheck {
     public AimC(APlayer aPlayer) {
         super("AimC", aPlayer);
@@ -44,7 +41,7 @@ public class AimC extends Check implements PacketCheck {
                 if (disYaw < 8 && avgYaw > 2.5D) {
                     buffer1++;
                     if (buffer1 > maxBuffer) {
-                        flag("");
+                        flag(String.format("disYaw=%.5f\navgYaw=%.5f", disYaw, avgYaw));
                         buffer1 = 0;
                     }
                 } else {
@@ -54,7 +51,7 @@ public class AimC extends Check implements PacketCheck {
                 if (disPitch < 8 && avgPitch > 2.5D) {
                     buffer2++;
                     if (buffer2 > maxBuffer) {
-                        flag("опа детект");
+                        flag(String.format("disPitch=%.5f\navgPitch=%.5f", disPitch, avgPitch));
                         buffer2 = 0;
                     }
                 } else {

@@ -12,9 +12,6 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * хз
- */
 public class AimD extends Check implements PacketCheck {
     public AimD(APlayer aPlayer) {
         super("AimD", aPlayer);

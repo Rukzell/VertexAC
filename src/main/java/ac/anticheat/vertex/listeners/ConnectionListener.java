@@ -1,7 +1,6 @@
 package ac.anticheat.vertex.listeners;
 
 import ac.anticheat.vertex.VertexAC;
-import ac.anticheat.vertex.managers.CheckManager;
 import ac.anticheat.vertex.managers.PlayerDataManager;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
@@ -16,7 +15,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class GatekeeperListener implements Listener {
+public class ConnectionListener implements Listener {
     private final Map<Integer, Player> players = new ConcurrentHashMap<>();
 
     @EventHandler

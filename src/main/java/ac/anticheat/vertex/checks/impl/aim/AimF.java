@@ -31,7 +31,7 @@ public class AimF extends Check implements PacketCheck {
             if (invalid) {
                 buffer++;
                 if (buffer > maxBuffer) {
-                    flag("слишком маленькие дельты");
+                    flag(String.format("deltaYaw=%.5f\ndeltaPitch=%.5f", deltaYaw, deltaPitch));
                     buffer = 0;
                 }
             } else {

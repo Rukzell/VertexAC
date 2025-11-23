@@ -7,9 +7,6 @@ import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
-/**
- * ты тоже жрёшь и бьёшь?
- */
 public class AuraA extends Check implements PacketCheck {
     public AuraA(APlayer player) {
         super("AuraA", player);
@@ -29,7 +26,7 @@ public class AuraA extends Check implements PacketCheck {
             if (aPlayer.bukkitPlayer.isHandRaised()) {
                 buffer++;
                 if (buffer > maxBuffer) {
-                    flag("не ну а чё он жрёт и бьёт");
+                    flag();
                     buffer = 0;
                 }
             } else {

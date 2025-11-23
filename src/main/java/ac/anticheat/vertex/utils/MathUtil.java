@@ -55,23 +55,30 @@ public class MathUtil {
         return count == 0 ? 0.0 : sum / count;
     }
 
-    public static double autoCorrelation(List<Double> data, int lag) {
+    public static double autocorrelation(List<Double> data, int lag) {
         int n = data.size();
-        if (n <= lag) return 0;
+        if (n <= lag + 1) return 1.0;
 
-        double mean = data.stream().mapToDouble(d -> d).average().orElse(0.0);
+        double mean = 0.0;
+        for (double v : data) mean += v;
+        mean /= n;
 
         double numerator = 0.0;
         double denominator = 0.0;
 
-        for (int i = 0; i < n - lag; i++) {
-            numerator += (data.get(i) - mean) * (data.get(i + lag) - mean);
-        }
         for (int i = 0; i < n; i++) {
-            denominator += Math.pow(data.get(i) - mean, 2);
+            double diff = data.get(i) - mean;
+            denominator += diff * diff;
+
+            int j = i + lag;
+            if (j < n) {
+                double diffLag = data.get(j) - mean;
+                numerator += diff * diffLag;
+            }
         }
 
-        return denominator == 0 ? 0 : numerator / denominator;
+        if (denominator == 0.0) return 1.0;
+        return numerator / denominator;
     }
 
     public static double getKurtosis(List<Double> values) {
@@ -213,5 +220,17 @@ public class MathUtil {
             d[i - 1] = values.get(i) - values.get(i - 1);
         }
         return d;
+    }
+
+    public static boolean hasJitterBreaks(List<Double> data, double threshold) {
+        if (data.size() < 3) return true;
+
+        for (int i = 2; i < data.size(); i++) {
+            double delta1 = data.get(i) - data.get(i - 1);
+            double delta2 = data.get(i - 1) - data.get(i - 2);
+            double secondDerivative = Math.abs(delta1 - delta2);
+            if (secondDerivative > threshold) return true;
+        }
+        return false;
     }
 }

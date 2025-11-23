@@ -7,9 +7,6 @@ import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
-/**
- * ну типа a > 3.5 а b == 0
- */
 public class AimE extends Check implements PacketCheck {
     public AimE(APlayer aPlayer) {
         super("AimE", aPlayer);
@@ -34,7 +31,7 @@ public class AimE extends Check implements PacketCheck {
             if (deltaYaw > 3.5 && deltaPitch == 0) {
                 buffer1++;
                 if (buffer1 > maxBuffer) {
-                    flag("ну типа х > 3.5 а y == 0");
+                    flag();
                     buffer1 = 0;
                 }
             } else {
