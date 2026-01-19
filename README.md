@@ -1,1 +1,1 @@
-## [Discord](https://discord.gg/wSyCGbU8Zj)
+[idk](https://cdn.discordapp.com/attachments/1302923379174670339/1461813076860080179/video5384558940891673765.gif)
