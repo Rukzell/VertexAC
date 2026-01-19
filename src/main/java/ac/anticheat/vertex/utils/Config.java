@@ -3,7 +3,7 @@ package ac.anticheat.vertex.utils;
 import ac.anticheat.vertex.VertexAC;
 
 public class Config {
-    private static final VertexAC plugin = VertexAC.getInstance();
+    private static final VertexAC plugin = VertexAC.get();
 
     public static String getString(String path, String def) {
         String str = plugin.getConfig().getString(path);

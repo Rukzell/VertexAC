@@ -11,19 +11,15 @@ public class AimK extends Check implements PacketCheck {
         super("AimK", aPlayer);
     }
 
-    private int ticks;
-
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (!isEnabled() || !aPlayer.actionData.inCombat() || aPlayer.bukkitPlayer.isInsideVehicle()) return;
 
         if (PacketUtil.isRotation(event)) {
             double pitch = Math.abs(aPlayer.rotationData.pitch);
-            ticks++;
 
-            if (pitch > 90 && ticks > 20) {
+            if (pitch > 90.1) {
                 flag(String.format("pitch=%.5f", pitch));
-                ticks = 0;
             }
         }
     }

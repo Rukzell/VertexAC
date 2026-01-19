@@ -1,5 +1,6 @@
 package ac.anticheat.vertex.checks.impl.aura;
 
+import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
@@ -9,20 +10,19 @@ import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 /**
- * автокликер типо
+ * Вы, нерелигиозные люди, будете нести ответственность перед Аль-Каххаром за свои дела, иншаллах, Судный день уже очень близок
  */
 public class AuraC extends Check implements PacketCheck {
+    private final EvictingList<Long> attackDelays = new EvictingList<>(5);
+    private long lastAttackTime;
+    private final VlBuffer buffer = new VlBuffer();
+    private double maxBuffer;
+    private double bufferDecrease;
     public AuraC(APlayer player) {
         super("AuraC", player);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
         this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 1);
     }
-
-    private final EvictingList<Long> attackDelays = new EvictingList<>(10);
-    private long lastAttackTime;
-    private double buffer;
-    private double maxBuffer;
-    private double bufferDecrease;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -36,13 +36,13 @@ public class AuraC extends Check implements PacketCheck {
 
                 if (attackDelays.isFull()) {
                     if (attackDelays.allEqual()) {
-                        buffer++;
-                        if (buffer > maxBuffer) {
+                        buffer.fail(1);
+                        if (buffer.getVl() > maxBuffer) {
                             flag();
-                            buffer = 0;
+                            buffer.setVl(0);
                         }
-                    } else if (buffer > 0) {
-                        buffer -= bufferDecrease;
+                    } else {
+                        buffer.setVl(buffer.getVl() - bufferDecrease);
                     }
                 }
             }

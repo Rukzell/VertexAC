@@ -1,5 +1,6 @@
 package ac.anticheat.vertex.checks.impl.aim;
 
+import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
@@ -16,7 +17,7 @@ public class AimL extends Check implements PacketCheck {
     private final List<Double> deltaPitches = new ArrayList<>();
     private double maxBuffer;
     private double bufferDecrease;
-    private double buffer;
+    private final VlBuffer buffer = new VlBuffer();
     public AimL(APlayer aPlayer) {
         super("AimL", aPlayer);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
@@ -28,41 +29,40 @@ public class AimL extends Check implements PacketCheck {
         if (!isEnabled() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation()) return;
 
         if (PacketUtil.isRotation(event)) {
-            double deltaYaw = Math.abs(aPlayer.rotationData.deltaYaw);
-            double deltaPitch = Math.abs(aPlayer.rotationData.deltaPitch);
+            double deltaYaw = aPlayer.rotationData.deltaYaw;
+            double deltaPitch = aPlayer.rotationData.deltaPitch;
             deltaYaws.add(deltaYaw);
             deltaPitches.add(deltaPitch);
 
             if (deltaYaws.size() > 20) {
-                double ac1 = MathUtil.autocorrelation(deltaYaws, 1);
-                double ac2 = MathUtil.autocorrelation(deltaYaws, 2);
+                int signChanges = MathUtil.signChanges(deltaYaws);
 
-                if (Math.abs(ac1) < 0.037 && Math.abs(ac2) < 0.037) {
-                    buffer++;
-                    if (buffer > maxBuffer) {
-                        flag(String.format("yaw\nac1=%.5f\nac2=%.5f", ac1, ac2));
-                        buffer = 0;
-                    }
-                } else {
-                    if (buffer > 0) buffer -= bufferDecrease;
+                if (signChanges > 15) {
+                    buffer.fail(2);
+                } else if (signChanges > 13) {
+                    buffer.fail(1);
+                } else if (signChanges < 11) {
+                    buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
                 deltaYaws.remove(0);
             }
 
             if (deltaPitches.size() > 20) {
-                double ac1 = MathUtil.autocorrelation(deltaPitches, 1);
-                double ac2 = MathUtil.autocorrelation(deltaPitches, 2);
+                int signChanges = MathUtil.signChanges(deltaPitches);
 
-                if (Math.abs(ac1) < 0.037 && Math.abs(ac2) < 0.037) {
-                    buffer++;
-                    if (buffer > maxBuffer) {
-                        flag(String.format("pitch\nac1=%.5f\nac2=%.5f", ac1, ac2));
-                        buffer = 0;
-                    }
-                } else {
-                    if (buffer > 0) buffer -= bufferDecrease;
+                if (signChanges > 15) {
+                    buffer.fail(2);
+                } else if (signChanges > 13) {
+                    buffer.fail(1);
+                } else if (signChanges < 11) {
+                    buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
                 deltaPitches.remove(0);
+            }
+
+            if (buffer.getVl() > maxBuffer) {
+                flag("too many sign changes");
+                buffer.setVl(0);
             }
         }
     }

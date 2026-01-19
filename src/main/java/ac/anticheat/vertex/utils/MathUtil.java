@@ -1,34 +1,10 @@
 package ac.anticheat.vertex.utils;
 
-import java.util.Collection;
-import java.util.List;
+import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
+
+import java.util.*;
 
 public class MathUtil {
-    public static double correlation(List<Double> actual, List<Double> predicted) {
-        int n = actual.size();
-        if (n == 0 || predicted.size() != n) return 0.0;
-
-        double meanActual = actual.stream().mapToDouble(d -> d).average().orElse(0.0);
-        double meanPredicted = predicted.stream().mapToDouble(d -> d).average().orElse(0.0);
-
-        double numerator = 0.0;
-        double denominatorActual = 0.0;
-        double denominatorPredicted = 0.0;
-
-        for (int i = 0; i < n; i++) {
-            double aDiff = actual.get(i) - meanActual;
-            double pDiff = predicted.get(i) - meanPredicted;
-            numerator += aDiff * pDiff;
-            denominatorActual += aDiff * aDiff;
-            denominatorPredicted += pDiff * pDiff;
-        }
-
-        double denominator = java.lang.Math.sqrt(denominatorActual * denominatorPredicted);
-        if (denominator == 0) return 0.0;
-
-        return numerator / denominator;
-    }
-
     public static double jerk(List<Double> values) {
         if (values.size() < 4) return 0.0;
 
@@ -39,20 +15,6 @@ public class MathUtil {
         }
 
         return jerk;
-    }
-
-    public static double getMean(final Collection<? extends Number> data) {
-        if (data == null || data.isEmpty()) return 0.0;
-
-        double sum = 0.0;
-        int count = 0;
-
-        for (Number number : data) {
-            sum += number.doubleValue();
-            count++;
-        }
-
-        return count == 0 ? 0.0 : sum / count;
     }
 
     public static double autocorrelation(List<Double> data, int lag) {
@@ -79,37 +41,6 @@ public class MathUtil {
 
         if (denominator == 0.0) return 1.0;
         return numerator / denominator;
-    }
-
-    public static double getKurtosis(List<Double> values) {
-        int n = values.size();
-
-        double mean = 0;
-        for (double v : values) {
-            mean += v;
-        }
-        mean /= n;
-
-        double sum2 = 0;
-        for (double v : values) {
-            sum2 += Math.pow(v - mean, 2);
-        }
-        double variance = sum2 / (n - 1);
-        double stdDev = Math.sqrt(variance);
-
-        if (stdDev == 0) {
-            return 0;
-        }
-
-        double sum4 = 0;
-        for (double v : values) {
-            sum4 += Math.pow(v - mean, 4);
-        }
-        double m4 = sum4 / n;
-
-        double kurtosis = m4 / Math.pow(stdDev, 4) - 3;
-
-        return kurtosis;
     }
 
     public static double r2Linearity(List<Double> deltas) {
@@ -149,88 +80,326 @@ public class MathUtil {
         return Math.max(0.0, Math.min(1.0, r2));
     }
 
-    public static double averageDeltaChange(List<Double> deltas) {
-        if (deltas.size() < 2) return 0;
+    public static int signChanges(List<Double> data) {
+        if (data == null || data.size() < 2) {
+            return 0;
+        }
+
+        int changes = 0;
+        double prev = data.get(0);
+
+        for (int i = 1; i < data.size(); i++) {
+            double curr = data.get(i);
+
+            double eps = 1E-4;
+
+            if (Math.signum(prev) != Math.signum(curr) || (Math.abs(curr) < eps && curr != 0) || (Math.abs(prev) < eps && prev != 0)) {
+                changes++;
+            }
+
+            prev = curr;
+        }
+
+        return changes;
+    }
+
+    public static double stddev(List<Long> data) {
+        int n = data.size();
+        if (n == 0) return 0.0;
+
+        double mean = 0.0;
+        for (double v : data) {
+            mean += v;
+        }
+        mean /= n;
+
+        double variance = 0.0;
+        for (double v : data) {
+            double diff = v - mean;
+            variance += diff * diff;
+        }
+        variance /= n;
+
+        return Math.sqrt(variance);
+    }
+
+    public static double jarqueBera(List<Double> data) {
+        int n = data.size();
+        if (n < 3) {
+            return 0;
+        }
+
+        double mean = 0.0;
+        for (double x : data) {
+            mean += x;
+        }
+        mean /= n;
+
+        double m2 = 0.0;
+        double m3 = 0.0;
+        double m4 = 0.0;
+
+        for (double x : data) {
+            double d = x - mean;
+            double d2 = d * d;
+            m2 += d2;
+            m3 += d2 * d;
+            m4 += d2 * d2;
+        }
+
+        m2 /= n;
+        m3 /= n;
+        m4 /= n;
+
+        double skewness = m3 / Math.pow(m2, 1.5);
+        double kurtosis = m4 / (m2 * m2);
+
+        return (n / 6.0) *
+                (skewness * skewness +
+                        Math.pow(kurtosis - 3.0, 2) / 4.0);
+    }
+
+    public static double tailDeficiency(List<Double> data) {
+        int n = data.size();
+        if (n < 20) return 0.0;
+
+        double mean = 0.0;
+        for (double v : data) mean += v;
+        mean /= n;
+
+        double variance = 0.0;
+        for (double v : data) {
+            double d = v - mean;
+            variance += d * d;
+        }
+        variance /= n;
+
+        double std = Math.sqrt(variance);
+        if (std == 0.0) return 1.0;
+
+        double[] abs = new double[n];
+        for (int i = 0; i < n; i++) {
+            abs[i] = Math.abs(data.get(i));
+        }
+
+        Arrays.sort(abs);
+
+        int idx = (int) (0.95 * n);
+        double p95 = abs[Math.min(idx, n - 1)];
+
+        return p95 / (2.0 * std);
+    }
+
+    public static double meanJerk(List<Double> data) {
+        if (data.size() < 3) return 0.0;
+
         double sum = 0;
-        for (int i = 1; i < deltas.size(); i++) {
-            sum += Math.abs(deltas.get(i) - deltas.get(i - 1));
-        }
-        return sum / (deltas.size() - 1);
-    }
-
-    public static double cosineSimilarity(List<Double> deltas) {
-        if (deltas.size() < 2) return 1.0;
-        double sumCos = 0;
-        int count = 0;
-        for (int i = 1; i < deltas.size(); i++) {
-            double prev = deltas.get(i - 1);
-            double curr = deltas.get(i);
-            if (prev == 0 && curr == 0) continue;
-            double cos = (prev * curr) / (Math.sqrt(prev * prev) * Math.sqrt(curr * curr));
-            sumCos += cos;
-            count++;
-        }
-        return count == 0 ? 1.0 : sumCos / count;
-    }
-
-    public static boolean isNearlySame(double d1, double d2, double number) {
-        return Math.abs(d1 - d2) < number;
-    }
-
-    public static double getGCD(double a, double b) {
-        if (a == 0 || b == 0) return 0;
-        a = Math.abs(a);
-        b = Math.abs(b);
-        while (b > 1.0E-9) {
-            double temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
-
-    public static double mean(double[] arr) {
-        if (arr == null || arr.length == 0) return 0.0;
-        double sum = 0.0;
-        for (double v : arr) {
-            sum += v;
-        }
-        return sum / arr.length;
-    }
-
-    public static double symmetry(double[] arr) {
-        if (arr == null || arr.length < 4) return 1.0;
-        double mean = mean(arr);
-        double sym = 0.0;
-        int pairs = 0;
-        for (int i = 0; i < arr.length / 2; i++) {
-            double sum = arr[i] + arr[arr.length - 1 - i];
-            sym += Math.abs(sum - 2 * mean);
-            pairs++;
-        }
-        return pairs > 0 ? sym / pairs : 1.0;
-    }
-
-    public static double[] diff(List<Double> values) {
-        if (values == null || values.size() < 2) {
-            return new double[0];
-        }
-        double[] d = new double[values.size() - 1];
-        for (int i = 1; i < values.size(); i++) {
-            d[i - 1] = values.get(i) - values.get(i - 1);
-        }
-        return d;
-    }
-
-    public static boolean hasJitterBreaks(List<Double> data, double threshold) {
-        if (data.size() < 3) return true;
-
         for (int i = 2; i < data.size(); i++) {
-            double delta1 = data.get(i) - data.get(i - 1);
-            double delta2 = data.get(i - 1) - data.get(i - 2);
-            double secondDerivative = Math.abs(delta1 - delta2);
-            if (secondDerivative > threshold) return true;
+            double jerk = data.get(i)
+                    - 2 * data.get(i - 1)
+                    + data.get(i - 2);
+            sum += Math.abs(jerk);
         }
-        return false;
+        return sum / (data.size() - 2);
+    }
+
+    public static double runsZScore(List<Double> values) {
+        if (values == null || values.size() < 10) {
+            return 0.0;
+        }
+
+        List<Double> sorted = new ArrayList<>(values);
+        Collections.sort(sorted);
+        double median = sorted.get(sorted.size() / 2);
+
+        List<Integer> signs = new ArrayList<>();
+        for (double v : values) {
+            if (v > median) signs.add(1);
+            else if (v < median) signs.add(-1);
+        }
+
+        if (signs.size() < 10) return 0.0;
+
+        int runs = 1;
+        for (int i = 1; i < signs.size(); i++) {
+            if (!signs.get(i).equals(signs.get(i - 1))) {
+                runs++;
+            }
+        }
+
+        int n1 = 0, n2 = 0;
+        for (int s : signs) {
+            if (s == 1) n1++;
+            else n2++;
+        }
+
+        double expectedRuns = (2.0 * n1 * n2) / (n1 + n2) + 1;
+        double varianceRuns =
+                (2.0 * n1 * n2 * (2.0 * n1 * n2 - n1 - n2)) /
+                        (Math.pow(n1 + n2, 2) * (n1 + n2 - 1));
+
+        if (varianceRuns <= 0) return 0.0;
+
+        return (runs - expectedRuns) / Math.sqrt(varianceRuns);
+    }
+
+    public static double entropy(List<Double> data) {
+        int bins = 10;
+        double min = Collections.min(data);
+        double max = Collections.max(data);
+        double width = (max - min) / bins;
+
+        if (width == 0) return 0;
+
+        int[] hist = new int[bins];
+        for (double v : data) {
+            int b = Math.min(bins - 1, (int) ((v - min) / width));
+            hist[b]++;
+        }
+
+        double h = 0;
+        for (int c : hist) {
+            if (c == 0) continue;
+            double p = c / (double) data.size();
+            h -= p * Math.log(p);
+        }
+
+        return h / Math.log(bins);
+    }
+
+    public static double runsTest(List<Double> data) {
+        double median = data.stream().sorted().skip(data.size()/2).findFirst().orElse((double) 0);
+
+        int runs = 1;
+        boolean above = data.get(0) > median;
+
+        for (double v : data) {
+            boolean now = v > median;
+            if (now != above) {
+                runs++;
+                above = now;
+            }
+        }
+
+        return Math.abs(runs - data.size() / 2.0) / data.size();
+    }
+
+    public static double madZ(List<Double> data) {
+        List<Double> sorted = new ArrayList<>(data);
+        Collections.sort(sorted);
+
+        double median = sorted.get(sorted.size() / 2);
+
+        List<Double> dev = new ArrayList<>();
+        for (double v : data) {
+            dev.add(Math.abs(v - median));
+        }
+
+        Collections.sort(dev);
+        double mad = dev.get(dev.size() / 2);
+        if (mad == 0) return 0;
+
+        return Math.abs(data.get(data.size() - 1) - median) / (1.4826 * mad);
+    }
+
+    public static double cusum(List<Double> data) {
+        double mean = data.stream().mapToDouble(d -> d).average().orElse(0);
+        double s = 0;
+        double max = 0;
+
+        for (double v : data) {
+            s = Math.max(0, s + v - mean);
+            max = Math.max(max, s);
+        }
+        return max;
+    }
+
+    public static double peakEnergyRatio(List<Double> data, int k) {
+        List<Double> copy = new ArrayList<>(data);
+        copy.sort(Collections.reverseOrder());
+
+        double top = 0.0, sum = 0.0;
+        for (double d : copy) {
+            sum += d;
+        }
+        for (int i = 0; i < Math.min(k, copy.size()); i++) {
+            top += copy.get(i);
+        }
+
+        return top / (sum + 1e-6);
+    }
+
+    public static double spectralFlatness(List<Double> data) {
+        int n = data.size();
+        if (n < 8) return 1.0;
+
+        double[] power = new double[n];
+
+        for (int k = 0; k < n; k++) {
+            double real = 0.0;
+            double imag = 0.0;
+            for (int t = 0; t < n; t++) {
+                double angle = 2.0 * Math.PI * k * t / n;
+                real += data.get(t) * Math.cos(angle);
+                imag -= data.get(t) * Math.sin(angle);
+            }
+            power[k] = real * real + imag * imag + 1e-12;
+        }
+
+        double geoMean = 0.0;
+        double arithMean = 0.0;
+
+        for (double p : power) {
+            geoMean += Math.log(p);
+            arithMean += p;
+        }
+
+        geoMean = Math.exp(geoMean / n);
+        arithMean /= n;
+
+        if (arithMean == 0.0) return 1.0;
+
+        return geoMean / arithMean;
+    }
+
+    public static double permutationEntropy(List<Double> data, int m) {
+        int n = data.size();
+        if (n < m + 1) return 0.0;
+
+        Map<String, Integer> counts = new HashMap<>();
+        int total = 0;
+
+        for (int i = 0; i <= n - m; i++) {
+            double[] window = new double[m];
+            for (int j = 0; j < m; j++) {
+                window[j] = data.get(i + j);
+            }
+
+            Integer[] idx = new Integer[m];
+            for (int j = 0; j < m; j++) idx[j] = j;
+
+            Arrays.sort(idx, Comparator.comparingDouble(j -> window[j]));
+
+            StringBuilder key = new StringBuilder();
+            for (int j : idx) key.append(j);
+
+            counts.merge(key.toString(), 1, Integer::sum);
+            total++;
+        }
+
+        double entropy = 0.0;
+        for (int c : counts.values()) {
+            double p = (double) c / total;
+            entropy -= p * Math.log(p);
+        }
+
+        double maxEntropy = Math.log(factorial(m));
+        return maxEntropy == 0 ? 0.0 : entropy / maxEntropy;
+    }
+
+    private static int factorial(int n) {
+        int r = 1;
+        for (int i = 2; i <= n; i++) r *= i;
+        return r;
     }
 }

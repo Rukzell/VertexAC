@@ -46,7 +46,7 @@ public class APlayer {
         this.actionData = new ActionData(this);
         this.packetData = new PacketData(this);
         this.rotationData = new RotationData(this);
-        this.plugin = VertexAC.getInstance();
+        this.plugin = VertexAC.get();
 
         this.enableAlertsOnJoin = Config.getBoolean("alerts.enable-alerts-on-join", true);
     }

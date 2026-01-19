@@ -1,5 +1,6 @@
 package ac.anticheat.vertex.checks.impl.aim;
 
+import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
@@ -12,17 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AimG extends Check implements PacketCheck {
-    public AimG(APlayer aPlayer) {
-        super("AimG", aPlayer);
-        this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 2);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
-    }
-
-    private double buffer;
+    private final VlBuffer buffer = new VlBuffer();
     private double maxBuffer;
     private double bufferDecrease;
-    private List<Double> deltaYaws = new ArrayList<>();
-    private List<Double> deltaPitches = new ArrayList<>();
+    private final List<Double> deltaYaws = new ArrayList<>();
+    private final List<Double> deltaPitches = new ArrayList<>();
+    public AimG(APlayer aPlayer) {
+        super("AimG", aPlayer);
+        this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 3);
+        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.5);
+    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -31,51 +31,45 @@ public class AimG extends Check implements PacketCheck {
         }
 
         if (PacketUtil.isRotation(event)) {
-            double deltaYaw = Math.abs(aPlayer.rotationData.deltaYaw);
-            double deltaPitch = Math.abs(aPlayer.rotationData.deltaPitch);
+            double dy = Math.abs(aPlayer.rotationData.deltaYaw);
+            double dp = Math.abs(aPlayer.rotationData.deltaPitch);
 
-            deltaYaws.add(deltaYaw);
-            deltaPitches.add(deltaPitch);
+            deltaYaws.add(dy);
+            deltaPitches.add(dp);
 
-            if (deltaYaws.size() == 20) {
-                double ac = MathUtil.autocorrelation(deltaYaws, 1);
-                boolean jitter = MathUtil.hasJitterBreaks(deltaYaws, 0.5);
-
-                if ((ac < 0.05 || ac > 0.95) && !jitter) {
-                    buffer++;
-                    if (buffer > maxBuffer) {
-                        flag(String.format("yaw\nautocorr=%.5f", ac));
-                        buffer = 0;
-                    }
-                } else {
-                    if (buffer > 0) buffer -= bufferDecrease;
+            if (deltaYaws.size() >= 100) {
+                double jarqueBera = MathUtil.jarqueBera(deltaYaws);
+                if (jarqueBera > 4000) {
+                    buffer.fail(2);
+                } else if (jarqueBera > 2500) {
+                    buffer.fail(1);
+                } else if (jarqueBera < 1300) {
+                    buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
-
-                deltaYaws.remove(0);
+                deltaYaws.clear();
             }
 
-            if (deltaPitches.size() > 20) {
-                double ac = MathUtil.autocorrelation(deltaPitches, 1);
-                boolean jitter = MathUtil.hasJitterBreaks(deltaPitches, 0.5);
-
-                if ((ac < 0.05 || ac > 0.95) && !jitter) {
-                    buffer++;
-                    if (buffer > maxBuffer) {
-                        flag(String.format("pitch\nautocorr=%.5f", ac));
-                        buffer = 0;
-                    }
-                } else {
-                    if (buffer > 0) buffer -= bufferDecrease;
+            if (deltaPitches.size() >= 100) {
+                double jarqueBera = MathUtil.jarqueBera(deltaPitches);
+                if (jarqueBera > 4000) {
+                    buffer.fail(2);
+                } else if (jarqueBera > 2500) {
+                    buffer.fail(1);
+                } else if (jarqueBera < 1300) {
+                    buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
+                deltaPitches.clear();
+            }
 
-                deltaPitches.remove(0);
+            if (buffer.getVl() > maxBuffer) {
+                flag("failed jarque-bera test");
             }
         }
     }
 
     @Override
     public void onReload() {
-        maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.05);
+        maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 3);
+        bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.5);
     }
 }

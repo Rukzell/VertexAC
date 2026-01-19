@@ -18,6 +18,10 @@ public class RotationData extends Check implements PacketCheck {
     public float deltaYaw, deltaPitch;
     public float lastDeltaYaw, lastDeltaPitch;
     public float lastLastDeltaYaw, lastLastDeltaPitch;
+    public float accelYaw, accelPitch;
+    public float lastAccelYaw, lastAccelPitch;
+    public float jerkYaw, jerkPitch;
+    public float lastJerkYaw, lastJerkPitch;
 
     private long lastSmooth = 0L, lastHighRate = 0L;
     private double lastDeltaXRot = 0.0, lastDeltaYRot = 0.0;
@@ -55,6 +59,18 @@ public class RotationData extends Check implements PacketCheck {
 
         deltaYaw = newDeltaYaw;
         deltaPitch = newDeltaPitch;
+
+        lastAccelYaw = accelYaw;
+        lastAccelPitch = accelPitch;
+
+        accelYaw = deltaYaw - lastDeltaYaw;
+        accelPitch = deltaPitch - lastDeltaPitch;
+
+        lastJerkYaw = jerkYaw;
+        lastJerkPitch = jerkPitch;
+
+        jerkYaw = accelYaw - lastAccelYaw;
+        jerkPitch = accelPitch - lastAccelPitch;
 
         processCinematic();
     }
@@ -98,7 +114,7 @@ public class RotationData extends Check implements PacketCheck {
             }
 
             if (shannonYaw.size() != 1 || shannonPitch.size() != 1 ||
-                !shannonYaw.toArray()[0].equals(shannonPitch.toArray()[0])) {
+                    !shannonYaw.toArray()[0].equals(shannonPitch.toArray()[0])) {
                 isTotallyNotCinematic = 20;
             }
 

@@ -8,22 +8,22 @@ import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 public class AimI extends Check implements PacketCheck {
-    public AimI(APlayer aPlayer) {
-        super("AimI", aPlayer);
-        maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.05);
-    }
-
     private int yawStreak;
     private int pitchStreak;
     private double buffer1;
     private double buffer2;
     private double maxBuffer;
     private double bufferDecrease;
+    public AimI(APlayer aPlayer) {
+        super("AimI", aPlayer);
+        maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
+        bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.15);
+    }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation()) return;
+        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation())
+            return;
 
         if (PacketUtil.isRotation(event)) {
             float deltaYaw = Math.abs(aPlayer.rotationData.deltaYaw);

@@ -12,7 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Random;
 
 public class PunishEffect {
-    private static final JavaPlugin plugin = VertexAC.getInstance();
+    private static final JavaPlugin plugin = VertexAC.get();
 
     private static final String particle = Config.getString("punish-effect.particle", "FLAME").toUpperCase();
     private static final String sound = Config.getString("punish-effect.sound", "ENTITY_DRAGON_FIREBALL_EXPLODE").toUpperCase();

@@ -46,7 +46,7 @@ public class VertexAC extends JavaPlugin {
 
     private void registerPacketListeners() {
         PacketEvents.getAPI().getEventManager().registerListener(
-                new PacketCheckListener(), PacketListenerPriority.NORMAL);
+                new PacketCheckListener(), PacketListenerPriority.HIGHEST);
 
         PacketEvents.getAPI().getEventManager().registerListener(
                 new InventoryListener(), PacketListenerPriority.NORMAL);
@@ -57,7 +57,7 @@ public class VertexAC extends JavaPlugin {
         getServer().getPluginManager().registerEvents(connectionListener, this);
     }
 
-    public static VertexAC getInstance() {
+    public static VertexAC get() {
         return instance;
     }
 

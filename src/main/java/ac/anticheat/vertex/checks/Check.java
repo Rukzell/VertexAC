@@ -3,6 +3,7 @@ package ac.anticheat.vertex.checks;
 import ac.anticheat.vertex.VertexAC;
 import ac.anticheat.vertex.api.events.impl.ViolationEvent;
 import ac.anticheat.vertex.beauty.PunishEffect;
+import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.managers.PlayerDataManager;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
@@ -31,6 +32,7 @@ public abstract class Check {
     private Plugin plugin;
     private String prefix = Config.getString("vertex.prefix", "vertex.prefix");
     private String rawMessage = Config.getString("alerts.message", "alerts.message");
+    private long lastFlagTime = 0;
 
     private long delayTaskRawDelay = Config.getInt(getConfigPath() + ".remove-violations-after", 300);
     private long delayTaskDelay = delayTaskRawDelay * 20;
@@ -44,10 +46,10 @@ public abstract class Check {
         this.experimental = name.contains("*");
         this.punishCommand = Config.getString("checks." + name + ".punish-command", "kick {player} #ff7b42Unfair Advantage");
         this.alert = Config.getBoolean("checks." + name + ".alert", true);
-        this.maxViolations = Config.getInt("checks." + name + ".max-violations", 10);
+        this.maxViolations = Config.getInt("checks." + name + ".max-violations", 10000);
         this.hitCancelTicks = Config.getInt("checks." + name + ".hit-cancel-ticks", 0);
         this.hitTicksToCancel = 0;
-        this.plugin = VertexAC.getInstance();
+        this.plugin = VertexAC.get();
 
         startDecayTask();
     }
@@ -57,6 +59,15 @@ public abstract class Check {
     }
 
     protected void flag(String verbose) {
+        if (!aPlayer.bukkitPlayer.isOnline()) return;
+
+        long now = System.currentTimeMillis();
+
+        if (now - lastFlagTime < 1000) {
+            return;
+        }
+
+        lastFlagTime = now;
         if (!experimental) {
             this.hitTicksToCancel += hitCancelTicks;
         }
@@ -79,7 +90,7 @@ public abstract class Check {
                         MessageUtils.parseMessage(verbose)
                 )
         );
-        if (alert && violations <= maxViolations && aPlayer.bukkitPlayer.isOnline()) {
+        if (alert && violations <= maxViolations) {
             for (Player online : Bukkit.getOnlinePlayers()) {
                 if (online.hasPermission("vertex.alerts")) {
                     APlayer targetData = PlayerDataManager.get(online);
@@ -90,7 +101,7 @@ public abstract class Check {
             }
         }
 
-        if (getViolations() >= getMaxViolations()) {
+        if (getViolations() >= getMaxViolations() && !aPlayer.bukkitPlayer.isOp()) {
             runSync(() -> PunishEffect.start(aPlayer.bukkitPlayer));
             dispatchCommand(Hex.translateHexColors(punishCommand));
         }
@@ -114,7 +125,7 @@ public abstract class Check {
                     if (violations < 0) violations = 0;
                 }
             }
-        }.runTaskTimer(VertexAC.getInstance(), delayTaskDelay, delayTaskDelay);
+        }.runTaskTimer(VertexAC.get(), delayTaskDelay, delayTaskDelay);
     }
 
     public void runSync(Runnable task) {
@@ -163,8 +174,8 @@ public abstract class Check {
     public void reload() {
         this.enabled = Config.getBoolean(getConfigPath() + ".enabled", true);
         this.alert = Config.getBoolean(getConfigPath() + ".alert", true);
-        this.maxViolations = Config.getInt(getConfigPath() + ".max-violations", 10);
-        this.hitCancelTicks = Config.getInt(getConfigPath() + ".hit-cancel-ticks", 20);
+        this.maxViolations = Config.getInt(getConfigPath() + ".max-violations", 10000);
+        this.hitCancelTicks = Config.getInt(getConfigPath() + ".hit-cancel-ticks", 0);
         this.decay = Config.getInt(getConfigPath() + ".decay", 1);
         this.delayTaskRawDelay = Config.getInt(getConfigPath() + ".remove-violations-after", 300);
         this.delayTaskDelay = delayTaskRawDelay * 20;

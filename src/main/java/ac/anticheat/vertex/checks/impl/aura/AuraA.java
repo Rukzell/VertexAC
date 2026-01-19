@@ -8,15 +8,14 @@ import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 public class AuraA extends Check implements PacketCheck {
+    private double maxBuffer;
+    private double buffer;
+    private double bufferDecrease;
     public AuraA(APlayer player) {
         super("AuraA", player);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
         this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.5);
     }
-
-    private double maxBuffer;
-    private double buffer;
-    private double bufferDecrease;
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

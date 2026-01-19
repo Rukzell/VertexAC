@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/TacoAC.iml" filepath="$PROJECT_DIR$/TacoAC.iml" />
       <module fileurl="file://$PROJECT_DIR$/VertexAC.iml" filepath="$PROJECT_DIR$/VertexAC.iml" />
     </modules>
   </component>
