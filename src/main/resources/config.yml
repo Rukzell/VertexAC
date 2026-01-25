@@ -145,9 +145,9 @@ checks:
     enabled: true
     alert: true
     punish-command: 'kick {player} #ff7b42Unfair Advantage'
-    max-buffer: 3.5
+    max-buffer: 7
     buffer-decrease: 0.5
-    hit-cancel-ticks: 25
+    hit-cancel-ticks: 30
   AimM:
     max-violations: 5
     remove-violations-after: 60 # seconds

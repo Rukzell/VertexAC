@@ -3,13 +3,16 @@ package ac.anticheat.vertex.data;
 import ac.anticheat.vertex.VertexAC;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
+import ac.anticheat.vertex.managers.CheckManager;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import org.bukkit.entity.Player;
 
 public class ActionData extends Check implements PacketCheck {
@@ -22,6 +25,7 @@ public class ActionData extends Check implements PacketCheck {
     private boolean stopSprint = false;
     private int combatTicks;
     private Player pTarget;
+    private boolean digging = false;
 
     public ActionData(APlayer aPlayer) {
         super("ActionData", aPlayer);
@@ -47,10 +51,12 @@ public class ActionData extends Check implements PacketCheck {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
             switch (wrapper.getAction()) {
                 case START_SPRINTING -> {
+                    if (startSprint) VertexAC.getCheckManager().getCheck(aPlayer.bukkitPlayer, "AuraE").flag();
                     startSprint = true;
                     stopSprint = false;
                 }
                 case STOP_SPRINTING -> {
+                    if (stopSprint) VertexAC.getCheckManager().getCheck(aPlayer.bukkitPlayer, "AuraE").flag();
                     stopSprint = true;
                     startSprint = false;
                 }
@@ -62,12 +68,22 @@ public class ActionData extends Check implements PacketCheck {
             return;
         }
 
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+            WrapperPlayClientPlayerDigging wrapper = new WrapperPlayClientPlayerDigging(event);
+            switch (wrapper.getAction()) {
+                case START_DIGGING -> digging = true;
+                case CANCELLED_DIGGING -> digging = false;
+                case FINISHED_DIGGING -> digging = false;
+            }
+        }
+
         if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
             attack = false;
             interact = false;
             startSprint = false;
             stopSprint = false;
             swing = false;
+            digging = false;
         }
     }
 
@@ -117,5 +133,9 @@ public class ActionData extends Check implements PacketCheck {
 
     public void onReload() {
         this.combatTicks = Config.getInt(getConfigPath() + ".combat-ticks", 60);
+    }
+
+    public boolean isDigging() {
+        return digging;
     }
 }

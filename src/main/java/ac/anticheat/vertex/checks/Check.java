@@ -19,7 +19,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 public abstract class Check {
     private final String name;
-    protected final APlayer aPlayer;
+    public final APlayer aPlayer;
     private boolean enabled;
     private final boolean experimental;
     private final String punishCommand;
@@ -54,11 +54,11 @@ public abstract class Check {
         startDecayTask();
     }
 
-    protected void flag() {
+    public void flag() {
         flag("");
     }
 
-    protected void flag(String verbose) {
+    public void flag(String verbose) {
         if (!aPlayer.bukkitPlayer.isOnline()) return;
 
         long now = System.currentTimeMillis();

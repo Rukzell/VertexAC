@@ -1,6 +1,7 @@
 package ac.anticheat.vertex.utils;
 
 import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
+import org.jtransforms.fft.DoubleFFT_1D;
 
 import java.util.*;
 
@@ -395,6 +396,43 @@ public class MathUtil {
 
         double maxEntropy = Math.log(factorial(m));
         return maxEntropy == 0 ? 0.0 : entropy / maxEntropy;
+    }
+
+    public static double mean(List<Double> values) {
+        if (values == null || values.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+
+        double sum = 0.0;
+        for (double v : values) {
+            sum += v;
+        }
+        return sum / values.size();
+    }
+
+    public static double highFreqRatio(List<Double> deltas) {
+        int N = deltas.size();
+        double[] data = new double[N];
+
+        for (int i = 0; i < N; i++) data[i] = deltas.get(i);
+
+        DoubleFFT_1D fft = new DoubleFFT_1D(N);
+        fft.realForward(data);
+
+        double totalEnergy = 0;
+        double highFreqEnergy = 0;
+
+        int halfN = N / 2;
+        for (int k = 0; k < halfN; k++) {
+            double re = (k == 0) ? data[0] : data[2*k];
+            double im = (k == 0) ? 0 : data[2*k+1];
+            double energy = re*re + im*im;
+            totalEnergy += energy;
+
+            if (k >= halfN/2) highFreqEnergy += energy;
+        }
+
+        return highFreqEnergy / totalEnergy;
     }
 
     private static int factorial(int n) {

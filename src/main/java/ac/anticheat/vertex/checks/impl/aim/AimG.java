@@ -41,9 +41,9 @@ public class AimG extends Check implements PacketCheck {
                 double jarqueBera = MathUtil.jarqueBera(deltaYaws);
                 if (jarqueBera > 4000) {
                     buffer.fail(2);
-                } else if (jarqueBera > 2500) {
+                } else if (jarqueBera > 3000) {
                     buffer.fail(1);
-                } else if (jarqueBera < 1300) {
+                } else {
                     buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
                 deltaYaws.clear();
@@ -53,9 +53,9 @@ public class AimG extends Check implements PacketCheck {
                 double jarqueBera = MathUtil.jarqueBera(deltaPitches);
                 if (jarqueBera > 4000) {
                     buffer.fail(2);
-                } else if (jarqueBera > 2500) {
+                } else if (jarqueBera > 3000) {
                     buffer.fail(1);
-                } else if (jarqueBera < 1300) {
+                } else {
                     buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
                 deltaPitches.clear();

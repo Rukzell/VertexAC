@@ -122,5 +122,10 @@
             <version>3.0.2</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.wendykierp</groupId>
+            <artifactId>JTransforms</artifactId>
+            <version>3.2</version>
+        </dependency>
     </dependencies>
 </project>

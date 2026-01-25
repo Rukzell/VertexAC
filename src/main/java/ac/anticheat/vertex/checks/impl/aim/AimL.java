@@ -41,7 +41,7 @@ public class AimL extends Check implements PacketCheck {
                     buffer.fail(2);
                 } else if (signChanges > 13) {
                     buffer.fail(1);
-                } else if (signChanges < 11) {
+                } else {
                     buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
                 deltaYaws.remove(0);
@@ -54,7 +54,7 @@ public class AimL extends Check implements PacketCheck {
                     buffer.fail(2);
                 } else if (signChanges > 13) {
                     buffer.fail(1);
-                } else if (signChanges < 11) {
+                } else {
                     buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
                 deltaPitches.remove(0);

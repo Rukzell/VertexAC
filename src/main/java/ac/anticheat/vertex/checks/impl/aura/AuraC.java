@@ -18,6 +18,7 @@ public class AuraC extends Check implements PacketCheck {
     private final VlBuffer buffer = new VlBuffer();
     private double maxBuffer;
     private double bufferDecrease;
+
     public AuraC(APlayer player) {
         super("AuraC", player);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
