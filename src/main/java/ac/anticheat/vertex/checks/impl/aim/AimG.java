@@ -63,6 +63,7 @@ public class AimG extends Check implements PacketCheck {
 
             if (buffer.getVl() > maxBuffer) {
                 flag("failed jarque-bera test");
+                buffer.setVl(0);
             }
         }
     }

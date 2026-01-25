@@ -7,6 +7,7 @@ import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.MathUtil;
 import ac.anticheat.vertex.utils.PacketUtil;
+import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 import java.util.ArrayList;
@@ -36,10 +37,11 @@ public class AimL extends Check implements PacketCheck {
 
             if (deltaYaws.size() > 20) {
                 int signChanges = MathUtil.signChanges(deltaYaws);
+                double stddev = Math.abs(Statistics.getStandardDeviation(deltaYaws));
 
-                if (signChanges > 15) {
+                if (signChanges > 15 && stddev < 2.5) {
                     buffer.fail(2);
-                } else if (signChanges > 13) {
+                } else if (signChanges > 12 && stddev < 4) {
                     buffer.fail(1);
                 } else {
                     buffer.setVl(buffer.getVl() - bufferDecrease);
@@ -49,10 +51,11 @@ public class AimL extends Check implements PacketCheck {
 
             if (deltaPitches.size() > 20) {
                 int signChanges = MathUtil.signChanges(deltaPitches);
+                double stddev = Math.abs(Statistics.getStandardDeviation(deltaPitches));
 
-                if (signChanges > 15) {
+                if (signChanges > 15 && stddev < 2.5) {
                     buffer.fail(2);
-                } else if (signChanges > 13) {
+                } else if (signChanges > 12 && stddev < 4) {
                     buffer.fail(1);
                 } else {
                     buffer.setVl(buffer.getVl() - bufferDecrease);

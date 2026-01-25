@@ -145,7 +145,7 @@ checks:
     enabled: true
     alert: true
     punish-command: 'kick {player} #ff7b42Unfair Advantage'
-    max-buffer: 7
+    max-buffer: 4
     buffer-decrease: 0.5
     hit-cancel-ticks: 30
   AimM:
@@ -172,6 +172,15 @@ checks:
     alert: true
     punish-command: 'kick {player} #ff7b42Unfair Advantage'
     hit-cancel-ticks: 30
+  AimP:
+    max-violations: 10
+    remove-violations-after: 120 # seconds
+    decay: 1
+    enabled: true
+    alert: true
+    punish-command: 'kick {player} #ff7b42Unfair Advantage'
+    hit-cancel-ticks: 40
+
 
   AuraA:
     max-violations: 10
@@ -194,6 +203,24 @@ checks:
     buffer-decrease: 0.25
     hit-cancel-ticks: 40
   AuraC:
+    max-violations: 15
+    remove-violations-after: 120 # seconds
+    decay: 1
+    enabled: true
+    alert: true
+    punish-command: 'kick {player} #ff7b42Unfair Advantage'
+    max-buffer: 0
+    buffer-decrease: 0
+    hit-cancel-ticks: 0
+  AuraD:
+    max-violations: 5
+    remove-violations-after: 60 # seconds
+    decay: 1
+    enabled: true
+    alert: true
+    punish-command: 'kick {player} #ff7b42Unfair Advantage'
+    hit-cancel-ticks: 0
+  AuraE:
     max-violations: 15
     remove-violations-after: 120 # seconds
     decay: 1

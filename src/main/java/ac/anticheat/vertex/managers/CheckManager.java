@@ -41,7 +41,6 @@ public class CheckManager {
         playerChecks.add(new AuraC(aPlayer));
         playerChecks.add(new AuraD(aPlayer));
         playerChecks.add(new AuraE(aPlayer));
-        playerChecks.add(new AuraF(aPlayer));
 
         for (Check check : playerChecks) {
             check.resetViolations();
