@@ -12,6 +12,7 @@ public class AimB extends Check implements PacketCheck {
     private final VlBuffer buffer = new VlBuffer();
     private double maxBuffer;
     private double bufferDecrease;
+
     public AimB(APlayer aPlayer) {
         super("AimB", aPlayer);
         this.maxBuffer = Config.getInt(getConfigPath() + ".max-buffer", 9);

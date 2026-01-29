@@ -12,6 +12,7 @@ public class AimE extends Check implements PacketCheck {
     private final VlBuffer buffer = new VlBuffer();
     private double maxBuffer;
     private double bufferDecrease;
+
     public AimE(APlayer aPlayer) {
         super("AimE", aPlayer);
         this.maxBuffer = Config.getInt(getConfigPath() + ".max-buffer", 7);
@@ -27,21 +28,29 @@ public class AimE extends Check implements PacketCheck {
         float deltaPitch = Math.abs(aPlayer.rotationData.deltaPitch);
 
         if (PacketUtil.isRotation(event)) {
-            if (deltaYaw > 3.5 && deltaPitch == 0) {
-                buffer.fail(1);
-                if (buffer.getVl() > maxBuffer) {
-                    flag();
-                    buffer.setVl(0);
+            if (deltaPitch == 0) {
+                if (deltaYaw > 80) {
+                    buffer.fail(maxBuffer + 1);
+                } else if (deltaYaw > 30) {
+                    buffer.fail(3);
+                } else if (deltaYaw > 10) {
+                    buffer.fail(2);
+                } else if (deltaYaw > 2) {
+                    buffer.fail(1);
                 }
             } else {
                 buffer.setVl(buffer.getVl() - bufferDecrease);
             }
 
-            if (deltaPitch > 3.5 && deltaYaw == 0) {
-                buffer.fail(1);
-                if (buffer.getVl() > maxBuffer) {
-                    flag("angle locking");
-                    buffer.setVl(0);
+            if (deltaYaw == 0) {
+                if (deltaPitch > 80) {
+                    buffer.fail(maxBuffer + 1);
+                } else if (deltaPitch > 30) {
+                    buffer.fail(3);
+                } else if (deltaPitch > 10) {
+                    buffer.fail(2);
+                } else if (deltaPitch > 2) {
+                    buffer.fail(1);
                 }
             } else {
                 buffer.setVl(buffer.getVl() - bufferDecrease);

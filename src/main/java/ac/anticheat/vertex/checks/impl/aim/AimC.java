@@ -18,6 +18,7 @@ public class AimC extends Check implements PacketCheck {
     private final VlBuffer buffer = new VlBuffer();
     private double maxBuffer;
     private double bufferDecrease;
+
     public AimC(APlayer aPlayer) {
         super("AimC", aPlayer);
         this.maxBuffer = Config.getInt(getConfigPath() + ".max-buffer", 2);

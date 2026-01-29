@@ -342,9 +342,9 @@ public final class AxisAlignedBB {
     /**
      * Performs a ray-box intersection test and returns the intersection point if it exists.
      * Returns null if the ray does not intersect with this bounding box.
-     * 
+     *
      * @param start The starting point of the ray
-     * @param end The ending point of the ray
+     * @param end   The ending point of the ray
      * @return The intersection point as Vec3, or null if no intersection
      */
     public Vec3 clip(Vec3 start, Vec3 end) {

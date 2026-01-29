@@ -19,26 +19,22 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.UUID;
 
 public class APlayer {
-    private final VertexAC plugin;
     public final Player bukkitPlayer;
     public final User user;
-
     public final ActionData actionData;
     public final RotationData rotationData;
     public final PacketData packetData;
-
+    public final boolean enableAlertsOnJoin;
+    private final VertexAC plugin;
     public boolean hasInventoryOpened;
-
     public int windowId;
     public int globalVl;
-
     public NPC kaNpc;
     public int kaNpcVl;
     public boolean kaNpcSpawned;
     public BukkitRunnable kaNpcTask;
-
     public boolean sendAlerts = false;
-    public final boolean enableAlertsOnJoin;
+    public boolean sendDebug = false;
 
     public APlayer(Player bukkitPlayer) {
         this.bukkitPlayer = bukkitPlayer;
@@ -67,6 +63,10 @@ public class APlayer {
         return this.enableAlertsOnJoin;
     }
 
+    public void toggleDebug() {
+        this.sendDebug = !this.sendDebug;
+    }
+
     public void closeInventory() {
         if (user == null) return;
 
@@ -93,9 +93,9 @@ public class APlayer {
         kaNpc.spawn(user.getChannel());
 
         kaNpcTask = new BukkitRunnable() {
-            double angle = 0;
             final double radius = 3;
             final double speed = 0.45;
+            double angle = 0;
 
             @Override
             public void run() {

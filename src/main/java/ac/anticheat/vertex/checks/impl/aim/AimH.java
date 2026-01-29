@@ -15,10 +15,11 @@ import java.util.List;
 public class AimH extends Check implements PacketCheck {
 
     private final VlBuffer buffer = new VlBuffer();
-    private double maxBuffer;
-    private double bufferDecrease;
     private final List<Double> deltaYaws = new ArrayList<>();
     private final List<Double> deltaPitches = new ArrayList<>();
+    private double maxBuffer;
+    private double bufferDecrease;
+
     public AimH(APlayer aPlayer) {
         super("AimH", aPlayer);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);

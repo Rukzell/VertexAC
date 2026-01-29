@@ -1,9 +1,7 @@
 package ac.anticheat.vertex.checks;
 
 import ac.anticheat.vertex.VertexAC;
-import ac.anticheat.vertex.api.events.impl.ViolationEvent;
 import ac.anticheat.vertex.beauty.PunishEffect;
-import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.managers.PlayerDataManager;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
@@ -18,18 +16,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 public abstract class Check {
-    private final String name;
     public final APlayer aPlayer;
-    private boolean enabled;
+    private final String name;
     private final boolean experimental;
     private final String punishCommand;
+    private final Plugin plugin;
+    public int hitCancelTicks;
+    public int hitTicksToCancel;
+    private boolean enabled;
     private boolean alert;
     private int violations;
     private int decay = Config.getInt(getConfigPath() + ".decay", 1);
     private int maxViolations;
-    public int hitCancelTicks;
-    public int hitTicksToCancel;
-    private Plugin plugin;
     private String prefix = Config.getString("vertex.prefix", "vertex.prefix");
     private String rawMessage = Config.getString("alerts.message", "alerts.message");
     private long lastFlagTime = 0;
@@ -74,7 +72,6 @@ public abstract class Check {
 
         if (violations < maxViolations) {
             violations++;
-            VertexAC.getEventManager().call(new ViolationEvent(aPlayer.bukkitPlayer, this, violations));
             aPlayer.globalVl++;
             aPlayer.kaNpcVl++;
         }
@@ -170,7 +167,7 @@ public abstract class Check {
     public int getMaxViolations() {
         return maxViolations;
     }
-    
+
     public void reload() {
         this.enabled = Config.getBoolean(getConfigPath() + ".enabled", true);
         this.alert = Config.getBoolean(getConfigPath() + ".alert", true);

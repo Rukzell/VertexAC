@@ -15,11 +15,12 @@ import java.util.List;
 public class AimO extends Check implements PacketCheck {
     private final List<Double> deltaYaws = new ArrayList<>();
     private final List<Double> deltaPitches = new ArrayList<>();
+    private final VlBuffer buffer = new VlBuffer();
     private List<Double> lastDeltaYaws;
     private List<Double> lastDeltaPitches;
     private double maxBuffer;
     private double bufferDecrease;
-    private final VlBuffer buffer = new VlBuffer();
+
     public AimO(APlayer aPlayer) {
         super("AimO", aPlayer);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 3);

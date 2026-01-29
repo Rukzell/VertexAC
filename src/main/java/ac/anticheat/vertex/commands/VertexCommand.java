@@ -13,7 +13,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-// если ты доебатся до этот хуйня, я твоя рот ебать
+
+// wtf
 public class VertexCommand implements CommandExecutor {
 
     private final VertexAC plugin;
@@ -123,6 +124,11 @@ public class VertexCommand implements CommandExecutor {
     }
 
     private void sendHelp(CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("§cThis command can only be used by players");
+            return;
+        }
+
         if (!sender.hasPermission("vertex.help")) {
             sender.sendMessage(Hex.translateHexColors(Config.getString("messages.no-permission", "§cYou don't have permission to use this command")));
             return;
@@ -132,6 +138,27 @@ public class VertexCommand implements CommandExecutor {
             Logger.log((Player) sender, Hex.translateHexColors(Config.getString("messages.commands", "messages.commands")));
         } else {
             Logger.log(Hex.translateHexColors(Config.getString("messages.commands", "messages.commands")));
+        }
+    }
+
+    private void toggleDebug(CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("§cThis command can only be used by players");
+            return;
+        }
+
+        if (!sender.hasPermission("vertex.debug")) {
+            sender.sendMessage(Hex.translateHexColors(Config.getString("messages.no-permission", "§cYou don't have permission to use this command")));
+            return;
+        }
+
+        APlayer aPlayer = PlayerDataManager.get((Player) sender);
+
+        aPlayer.toggleDebug();
+        if (aPlayer.sendDebug) {
+            Logger.log((Player) sender, Hex.translateHexColors(Config.getString("messages.debug.debug-enabled", "§aDebug enabled")));
+        } else {
+            Logger.log((Player) sender, Hex.translateHexColors(Config.getString("messages.debug.debug-disabled", "§cDebug disabled")));
         }
     }
 }

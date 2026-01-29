@@ -5,6 +5,7 @@ import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
+import ac.anticheat.vertex.utils.Logger;
 import ac.anticheat.vertex.utils.MathUtil;
 import ac.anticheat.vertex.utils.PacketUtil;
 import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
@@ -16,9 +17,11 @@ import java.util.List;
 public class AimL extends Check implements PacketCheck {
     private final List<Double> deltaYaws = new ArrayList<>();
     private final List<Double> deltaPitches = new ArrayList<>();
+    private final VlBuffer buffer = new VlBuffer();
+    private final VlBuffer buffer2 = new VlBuffer();
     private double maxBuffer;
     private double bufferDecrease;
-    private final VlBuffer buffer = new VlBuffer();
+
     public AimL(APlayer aPlayer) {
         super("AimL", aPlayer);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
@@ -38,11 +41,12 @@ public class AimL extends Check implements PacketCheck {
             if (deltaYaws.size() > 20) {
                 int signChanges = MathUtil.signChanges(deltaYaws);
                 double stddev = Math.abs(Statistics.getStandardDeviation(deltaYaws));
+                double k = Statistics.getKurtosis(deltaYaws);
 
-                if (signChanges > 15 && stddev < 2.5) {
+                if (signChanges > 15 && stddev < 2.5 && k < 0) {
                     buffer.fail(2);
-                } else if (signChanges > 12 && stddev < 4) {
-                    buffer.fail(1);
+                } else if (signChanges > 12 && stddev < 4 && k < 0) {
+                    buffer.fail(0.9);
                 } else {
                     buffer.setVl(buffer.getVl() - bufferDecrease);
                 }
@@ -50,20 +54,21 @@ public class AimL extends Check implements PacketCheck {
             }
 
             if (deltaPitches.size() > 20) {
-                int signChanges = MathUtil.signChanges(deltaPitches);
-                double stddev = Math.abs(Statistics.getStandardDeviation(deltaPitches));
+                int signChanges = MathUtil.signChanges(deltaYaws);
+                double stddev = Math.abs(Statistics.getStandardDeviation(deltaYaws));
+                double k = Statistics.getKurtosis(deltaYaws);
 
-                if (signChanges > 15 && stddev < 2.5) {
-                    buffer.fail(2);
-                } else if (signChanges > 12 && stddev < 4) {
-                    buffer.fail(1);
+                if (signChanges > 15 && stddev < 2.5 && k < 0) {
+                    buffer2.fail(2);
+                } else if (signChanges > 12 && stddev < 4 && k < 0) {
+                    buffer2.fail(0.9);
                 } else {
-                    buffer.setVl(buffer.getVl() - bufferDecrease);
+                    buffer2.setVl(buffer2.getVl() - bufferDecrease);
                 }
                 deltaPitches.remove(0);
             }
 
-            if (buffer.getVl() > maxBuffer) {
+            if (buffer.getVl() > maxBuffer || buffer2.getVl() > maxBuffer) {
                 flag("too many sign changes");
                 buffer.setVl(0);
             }

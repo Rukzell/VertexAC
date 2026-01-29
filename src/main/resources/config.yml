@@ -19,19 +19,19 @@ alerts:
 messages:
   no-permission: "§cYou don't have permission to use this command"
   alerts:
-    alerts-enabled: "§aОповещения включены"
-    alerts-disabled: "§cОповещения выключены"
+    alerts-enabled: "§aAlerts enabled"
+    alerts-disabled: "§cAlerts disabled"
   checks:
-    header: "#ffc84aВключённые проверки:"
+    header: "#ffc84aEnabled checks:"
     check: "#ffc84a- #ffebba{check}"
   config:
-    config-reload: "§aПерезагрузка конфига..."
-    config-reloaded: "§aКонфиг перезагружен"
+    config-reload: "§aReloading config..."
+    config-reloaded: "§aConfig reloaded"
   commands: |
-    #ffc84a- #ffebba/vertex reload &7- перезагрузка конфига
-    #ffc84a- #ffebba/vertex checks &7- включённые проверки
-    #ffc84a- #ffebba/vertex help &7- помощь
-    #ffc84a- #ffebba/vertex alerts &7- включить/выключить оповещения
+    #ffc84a- #ffebba/vertex reload &7- reload config
+    #ffc84a- #ffebba/vertex checks &7- enabled checks
+    #ffc84a- #ffebba/vertex help &7- help
+    #ffc84a- #ffebba/vertex alerts &7- enable/disable alerts
 
 checks:
   AimA:
@@ -106,7 +106,7 @@ checks:
     max-violations: 15
     remove-violations-after: 60 # seconds
     decay: 1
-    enabled: true
+    enabled: false # false positive check
     alert: true
     punish-command: 'kick {player} #ff7b42Unfair Advantage'
     max-buffer: 2
@@ -119,7 +119,7 @@ checks:
     enabled: true
     alert: true
     punish-command: 'kick {player} #ff7b42Unfair Advantage'
-    max-buffer: 2
+    max-buffer: 4
     buffer-decrease: 0.25
     hit-cancel-ticks: 15
   AimJ:
@@ -129,6 +129,8 @@ checks:
     enabled: true
     alert: true
     punish-command: 'kick {player} #ff7b42Unfair Advantage'
+    max-buffer: 2
+    buffer-decrease: 0.5
     hit-cancel-ticks: 20
   AimK:
     max-violations: 2
@@ -145,7 +147,7 @@ checks:
     enabled: true
     alert: true
     punish-command: 'kick {player} #ff7b42Unfair Advantage'
-    max-buffer: 4
+    max-buffer: 2
     buffer-decrease: 0.5
     hit-cancel-ticks: 30
   AimM:

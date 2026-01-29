@@ -11,6 +11,7 @@ public class AuraA extends Check implements PacketCheck {
     private double maxBuffer;
     private double buffer;
     private double bufferDecrease;
+
     public AuraA(APlayer player) {
         super("AuraA", player);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);

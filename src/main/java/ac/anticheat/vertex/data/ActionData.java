@@ -3,13 +3,11 @@ package ac.anticheat.vertex.data;
 import ac.anticheat.vertex.VertexAC;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
-import ac.anticheat.vertex.managers.CheckManager;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -128,7 +126,7 @@ public class ActionData extends Check implements PacketCheck {
     public boolean inCombat() {
         if (lastAttack == -1) return false;
         long elapsedMillis = (System.nanoTime() - lastAttack) / 1_000_000;
-        return elapsedMillis < combatTicks * 50;
+        return elapsedMillis < combatTicks * 50L;
     }
 
     public void onReload() {

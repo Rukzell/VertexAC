@@ -1,5 +1,5 @@
 name: Vertex
-version: '2.1.1'
+version: '26.1.1'
 main: ac.anticheat.vertex.VertexAC
 api-version: '1.16'
 author: Rukzell

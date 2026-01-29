@@ -43,11 +43,10 @@ public class Vec3i implements Comparable {
     public boolean equals(Object p_equals_1_) {
         if (this == p_equals_1_) {
             return true;
-        } else if (!(p_equals_1_ instanceof Vec3i)) {
+        } else if (!(p_equals_1_ instanceof Vec3i var2)) {
             return false;
         } else {
-            Vec3i var2 = (Vec3i) p_equals_1_;
-            return this.getX() != var2.getX() ? false : (this.getY() != var2.getY() ? false : this.getZ() == var2.getZ());
+            return this.getX() == var2.getX() && (this.getY() == var2.getY() && this.getZ() == var2.getZ());
         }
     }
 
@@ -94,7 +93,7 @@ public class Vec3i implements Comparable {
      * Calculate squared distance to the given Vector
      */
     public double distanceSq(Vec3i to) {
-        return this.distanceSq((double) to.getX(), (double) to.getY(), (double) to.getZ());
+        return this.distanceSq(to.getX(), to.getY(), to.getZ());
     }
 
     public int compareTo(Object p_compareTo_1_) {

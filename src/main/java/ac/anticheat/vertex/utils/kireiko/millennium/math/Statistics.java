@@ -101,31 +101,30 @@ public final class Statistics {
     }
 
     public static double getKurtosis(final Collection<? extends Number> data) {
-        double sum = 0.0;
-        int count = 0;
+        int n = data.size();
+        if (n < 4) return 0.0;
 
-        for (final Number number : data) {
-            sum += number.doubleValue();
-            ++count;
+        double mean = 0.0;
+        for (Number num : data) {
+            mean += num.doubleValue();
+        }
+        mean /= n;
+
+        double m2 = 0.0;
+        double m4 = 0.0;
+        for (Number num : data) {
+            double d = num.doubleValue() - mean;
+            m2 += d * d;
+            m4 += d * d * d * d;
         }
 
-        if (count < 3.0) {
-            return 0.0;
-        }
+        double variance = m2 / n;
+        if (variance == 0.0) return 0.0;
 
-        final double efficiencyFirst = count * (count + 1.0) / ((count - 1.0) * (count - 2.0) * (count - 3.0));
-        final double efficiencySecond = 3.0 * Math.pow(count - 1.0, 2.0) / ((count - 2.0) * (count - 3.0));
-        final double average = sum / count;
+        double efficiencyFirst = n * (n + 1.0) / ((n - 1.0) * (n - 2.0) * (n - 3.0));
+        double efficiencySecond = 3.0 * (n - 1.0) * (n - 1.0) / ((n - 2.0) * (n - 3.0));
 
-        double variance = 0.0;
-        double varianceSquared = 0.0;
-
-        for (final Number number : data) {
-            variance += Math.pow(average - number.doubleValue(), 2.0);
-            varianceSquared += Math.pow(average - number.doubleValue(), 4.0);
-        }
-
-        return efficiencyFirst * (varianceSquared / Math.pow(variance / sum, 2.0)) - efficiencySecond;
+        return efficiencyFirst * (m4 / (variance * variance)) - efficiencySecond;
     }
 
     public static long getMode(final Collection<? extends Number> array) {
@@ -296,7 +295,6 @@ public final class Statistics {
     }
 
     /**
-     * @param - The collection of numbers you want analyze
      * @return - A pair of the high and low outliers
      * @See - https://en.wikipedia.org/wiki/Outlier
      */
@@ -383,7 +381,7 @@ public final class Statistics {
             }
         }
 
-        return zeroCrossings / (double)(values.size() - 1);
+        return zeroCrossings / (double) (values.size() - 1);
     }
 
 

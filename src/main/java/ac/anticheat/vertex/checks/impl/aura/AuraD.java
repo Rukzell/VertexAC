@@ -10,12 +10,12 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class AuraD extends Check implements PacketCheck {
+    private final VlBuffer buffer = new VlBuffer();
+    private Location lastAttackerLocation;
+
     public AuraD(APlayer aPlayer) {
         super("AuraD", aPlayer);
     }
-
-    private Location lastAttackerLocation;
-    private VlBuffer buffer = new VlBuffer();
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

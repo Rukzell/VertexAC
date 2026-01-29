@@ -1,5 +1,6 @@
 package ac.anticheat.vertex.checks.impl.aim;
 
+import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
@@ -8,12 +9,13 @@ import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 public class AimI extends Check implements PacketCheck {
+    private final VlBuffer buffer1 = new VlBuffer();
+    private final VlBuffer buffer2 = new VlBuffer();
     private int yawStreak;
     private int pitchStreak;
-    private double buffer1;
-    private double buffer2;
     private double maxBuffer;
     private double bufferDecrease;
+
     public AimI(APlayer aPlayer) {
         super("AimI", aPlayer);
         maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
@@ -33,14 +35,14 @@ public class AimI extends Check implements PacketCheck {
 
             if (deltaYaw == lastDeltaYaw && deltaYaw != 0) {
                 yawStreak++;
-                if (yawStreak > 2) {
-                    buffer1++;
-                    if (buffer1 > maxBuffer) {
-                        flag(String.format("streakYaw=%d", yawStreak));
-                        buffer1 = 0;
-                    }
+                if (yawStreak > 5) {
+                    buffer1.fail(3);
+                } else if (yawStreak > 3) {
+                    buffer1.fail(2);
+                } else if (yawStreak > 2) {
+                    buffer1.fail(1);
                 } else {
-                    if (buffer1 > 0) buffer1 -= bufferDecrease;
+                    buffer1.setVl(buffer1.getVl() - bufferDecrease);
                 }
             } else {
                 yawStreak = 0;
@@ -48,18 +50,27 @@ public class AimI extends Check implements PacketCheck {
 
             if (deltaPitch == lastDeltaPitch && deltaPitch != 0) {
                 pitchStreak++;
-                if (pitchStreak > 2) {
-                    buffer2++;
-                    if (buffer2 > maxBuffer) {
-                        flag(String.format("streakPitch=%d", pitchStreak));
-                        buffer2 = 0;
-                    }
-                    pitchStreak = 0;
+                if (pitchStreak > 5) {
+                    buffer2.fail(3);
+                } else if (pitchStreak > 3) {
+                    buffer2.fail(1.7);
+                } else if (pitchStreak > 2) {
+                    buffer2.fail(1);
                 } else {
-                    if (buffer2 > 0) buffer2 -= bufferDecrease;
+                    buffer2.setVl(buffer2.getVl() - bufferDecrease);
                 }
             } else {
                 pitchStreak = 0;
+            }
+
+            if (buffer1.getVl() > maxBuffer) {
+                flag(String.format("streakYaw=%d", yawStreak));
+                buffer1.setVl(0);
+            }
+
+            if (buffer2.getVl() > maxBuffer) {
+                flag(String.format("streakPitch=%d", pitchStreak));
+                buffer2.setVl(0);
             }
         }
     }

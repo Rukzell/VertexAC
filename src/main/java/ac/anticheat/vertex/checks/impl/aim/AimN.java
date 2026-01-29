@@ -4,8 +4,8 @@ import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
-import ac.anticheat.vertex.utils.MathUtil;
 import ac.anticheat.vertex.utils.PacketUtil;
+import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 import java.util.ArrayList;
@@ -14,13 +14,9 @@ import java.util.List;
 public class AimN extends Check implements PacketCheck {
     private final List<Double> deltaYaws = new ArrayList<>();
     private final List<Double> deltaPitches = new ArrayList<>();
-    private double maxBuffer;
-    private double bufferDecrease;
-    private double buffer;
+
     public AimN(APlayer aPlayer) {
         super("AimN", aPlayer);
-        this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
     }
 
     @Override
@@ -34,35 +30,23 @@ public class AimN extends Check implements PacketCheck {
             deltaYaws.add(dy);
             deltaPitches.add(dp);
 
-            if (deltaYaws.size() >= 50) {
-                double td = MathUtil.tailDeficiency(deltaYaws);
-
-                if (td < 0.25) {
-                    flag("tdYaw=" + td);
-                    deltaYaws.clear();
-                    return;
+            if (deltaYaws.size() >= 30) {
+                double k = Statistics.getKurtosis(deltaYaws);
+                double skewness = Statistics.getSkewness(deltaYaws);
+                if (k < -0.12 && skewness > 1.1) {
+                    flag("k=" + k + "\nskewness=" + skewness);
                 }
-
-                deltaYaws.remove(0);
+                deltaYaws.clear();
             }
 
-            if (deltaPitches.size() >= 50) {
-                double td = MathUtil.tailDeficiency(deltaPitches);
-
-                if (td < 0.25) {
-                    flag("tdPitch=" + td);
-                    deltaPitches.clear();
-                    return;
+            if (deltaPitches.size() >= 30) {
+                double k = Statistics.getKurtosis(deltaPitches);
+                double skewness = Statistics.getSkewness(deltaPitches);
+                if (k < -0.12 && skewness > 1.1) {
+                    flag("k=" + k + "\nskewness=" + skewness);
                 }
-
-                deltaPitches.remove(0);
+                deltaPitches.clear();
             }
         }
-    }
-
-    @Override
-    public void onReload() {
-        this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
     }
 }

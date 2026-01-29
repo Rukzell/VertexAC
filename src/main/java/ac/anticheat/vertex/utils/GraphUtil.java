@@ -1,7 +1,5 @@
 package ac.anticheat.vertex.utils;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -42,11 +40,6 @@ public final class GraphUtil {
         return new GraphResult(graph.toString(), positives, negatives);
     }
 
-    @Getter
-    @Setter
-    @RequiredArgsConstructor
-    public static class GraphResult {
-        private final String graph;
-        private final int positives, negatives;
+    public record GraphResult(String graph, int positives, int negatives) {
     }
 }

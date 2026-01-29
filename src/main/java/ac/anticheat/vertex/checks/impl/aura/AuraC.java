@@ -14,8 +14,8 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
  */
 public class AuraC extends Check implements PacketCheck {
     private final EvictingList<Long> attackDelays = new EvictingList<>(5);
-    private long lastAttackTime;
     private final VlBuffer buffer = new VlBuffer();
+    private long lastAttackTime;
     private double maxBuffer;
     private double bufferDecrease;
 

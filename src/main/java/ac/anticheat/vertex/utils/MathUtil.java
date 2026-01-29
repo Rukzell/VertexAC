@@ -1,6 +1,5 @@
 package ac.anticheat.vertex.utils;
 
-import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
 import org.jtransforms.fft.DoubleFFT_1D;
 
 import java.util.*;
@@ -11,7 +10,7 @@ public class MathUtil {
 
         double jerk = 0.0;
         for (int i = 3; i < values.size(); i++) {
-            double j = values.get(i) - 3*values.get(i - 1) + 3*values.get(i - 2) - values.get(i - 3);
+            double j = values.get(i) - 3 * values.get(i - 1) + 3 * values.get(i - 2) - values.get(i - 3);
             jerk += Math.abs(j);
         }
 
@@ -269,7 +268,7 @@ public class MathUtil {
     }
 
     public static double runsTest(List<Double> data) {
-        double median = data.stream().sorted().skip(data.size()/2).findFirst().orElse((double) 0);
+        double median = data.stream().sorted().skip(data.size() / 2).findFirst().orElse((double) 0);
 
         int runs = 1;
         boolean above = data.get(0) > median;
@@ -399,13 +398,9 @@ public class MathUtil {
     }
 
     public static double mean(List<Double> values) {
-        if (values == null || values.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
-
         double sum = 0.0;
         for (double v : values) {
-            sum += v;
+            sum += Math.abs(v);
         }
         return sum / values.size();
     }
@@ -424,15 +419,23 @@ public class MathUtil {
 
         int halfN = N / 2;
         for (int k = 0; k < halfN; k++) {
-            double re = (k == 0) ? data[0] : data[2*k];
-            double im = (k == 0) ? 0 : data[2*k+1];
-            double energy = re*re + im*im;
+            double re = (k == 0) ? data[0] : data[2 * k];
+            double im = (k == 0) ? 0 : data[2 * k + 1];
+            double energy = re * re + im * im;
             totalEnergy += energy;
 
-            if (k >= halfN/2) highFreqEnergy += energy;
+            if (k >= halfN / 2) highFreqEnergy += energy;
         }
 
         return highFreqEnergy / totalEnergy;
+    }
+
+    public static int tooSmallValues(List<Double> data, double threshold) {
+        int count = 0;
+        for (double v : data) {
+            if (v < threshold && v != 0) count++;
+        }
+        return count;
     }
 
     private static int factorial(int n) {

@@ -9,10 +9,15 @@ import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class RotationData extends Check implements PacketCheck {
 
+    private final List<Double> yawSamples = new ArrayList<>();
+    private final List<Double> pitchSamples = new ArrayList<>();
     public float yaw, pitch;
     public float lastYaw, lastPitch;
     public float deltaYaw, deltaPitch;
@@ -22,11 +27,8 @@ public class RotationData extends Check implements PacketCheck {
     public float lastAccelYaw, lastAccelPitch;
     public float jerkYaw, jerkPitch;
     public float lastJerkYaw, lastJerkPitch;
-
     private long lastSmooth = 0L, lastHighRate = 0L;
     private double lastDeltaXRot = 0.0, lastDeltaYRot = 0.0;
-    private final List<Double> yawSamples = new ArrayList<>();
-    private final List<Double> pitchSamples = new ArrayList<>();
     private boolean cinematicRotation = false;
     private int isTotallyNotCinematic = 0;
 
@@ -121,10 +123,10 @@ public class RotationData extends Check implements PacketCheck {
             GraphUtil.GraphResult resultsYaw = GraphUtil.getGraph(yawSamples);
             GraphUtil.GraphResult resultsPitch = GraphUtil.getGraph(pitchSamples);
 
-            int negativesYaw = resultsYaw.getNegatives();
-            int negativesPitch = resultsPitch.getNegatives();
-            int positivesYaw = resultsYaw.getPositives();
-            int positivesPitch = resultsPitch.getPositives();
+            int negativesYaw = resultsYaw.negatives();
+            int negativesPitch = resultsPitch.negatives();
+            int positivesYaw = resultsYaw.positives();
+            int positivesPitch = resultsPitch.positives();
 
             if (positivesYaw > negativesYaw || positivesPitch > negativesPitch) {
                 lastSmooth = now;

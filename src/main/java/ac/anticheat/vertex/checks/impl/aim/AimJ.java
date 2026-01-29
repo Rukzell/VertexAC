@@ -7,26 +7,24 @@ import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.MathUtil;
 import ac.anticheat.vertex.utils.PacketUtil;
-import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import org.jtransforms.fft.DoubleFFT_2D;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AimJ extends Check implements PacketCheck {
+    private final VlBuffer bufferYaw = new VlBuffer();
+    private final VlBuffer bufferPitch = new VlBuffer();
+    private final List<Double> deltaYaws = new ArrayList<>();
+    private final List<Double> deltaPitches = new ArrayList<>();
+    private double maxBuffer;
+    private double bufferDecrease;
+
     public AimJ(APlayer aPlayer) {
         super("AimJ", aPlayer);
         this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 2);
         this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.5);
     }
-
-    private VlBuffer bufferYaw = new VlBuffer();
-    private VlBuffer bufferPitch = new VlBuffer();
-    private double maxBuffer;
-    private double bufferDecrease;
-    private List<Double> deltaYaws = new ArrayList<>();
-    private List<Double> deltaPitches = new ArrayList<>();
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {

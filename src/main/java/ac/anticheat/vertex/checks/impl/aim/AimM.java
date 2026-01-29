@@ -12,7 +12,8 @@ import java.util.List;
 
 public class AimM extends Check implements PacketCheck {
     private final List<Float> deltaYaws = new ArrayList<>();
-    private final List<Double> deltaYaws1 = new ArrayList<>();
+    private final List<Double> kurtosis = new ArrayList<>();
+
     public AimM(APlayer aPlayer) {
         super("AimM", aPlayer);
     }
@@ -25,28 +26,18 @@ public class AimM extends Check implements PacketCheck {
         float yaw = aPlayer.rotationData.deltaYaw;
         deltaYaws.add(yaw);
 
-        if (deltaYaws.size() >= 100) {
-            List<Float> jiffDelta = Statistics.getJiffDelta(deltaYaws, 4);
-            int distinct = Statistics.getDistinct(jiffDelta);
-
-            float distinctRank = (float) distinct / 60f;
-            deltaYaws1.add((double) distinctRank);
-
+        if (deltaYaws.size() > 30) {
+            double k = Statistics.getKurtosis(deltaYaws);
+            kurtosis.add(k);
             deltaYaws.clear();
         }
 
-        if (deltaYaws1.size() >= 10) {
-            double avg = Statistics.getAverage(deltaYaws1);
-            int normal = 0;
-            for (double d : deltaYaws1) {
-                if (d > 0.97) normal++;
+        if (kurtosis.size() >= 20) {
+            double stddev = Math.abs(Statistics.getStandardDeviation(kurtosis));
+            if (stddev < 1) {
+                flag("stddev=" + stddev);
             }
-
-            if (avg < 0.95 && normal < 4) {
-                flag();
-            }
-
-            deltaYaws1.clear();
+            kurtosis.clear();
         }
     }
 }

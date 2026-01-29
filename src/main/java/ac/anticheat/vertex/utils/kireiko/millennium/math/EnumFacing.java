@@ -304,7 +304,7 @@ public enum EnumFacing {
     }
 
     @Getter
-    public static enum Axis implements Predicate {
+    public enum Axis implements Predicate {
         X("x", Plane.HORIZONTAL),
         Y("y", Plane.VERTICAL),
         Z("z", Plane.HORIZONTAL);
@@ -359,7 +359,7 @@ public enum EnumFacing {
         }
     }
 
-    public static enum AxisDirection {
+    public enum AxisDirection {
         POSITIVE(1, "Towards positive"),
         NEGATIVE(-1, "Towards negative");
         private static final AxisDirection[] $VALUES = new AxisDirection[]{POSITIVE, NEGATIVE};
@@ -378,7 +378,7 @@ public enum EnumFacing {
         }
     }
 
-    public static enum Plane implements Predicate, Iterable {
+    public enum Plane implements Predicate, Iterable {
         HORIZONTAL(),
         VERTICAL();
         private static final Plane[] $VALUES = new Plane[]{HORIZONTAL, VERTICAL};
@@ -394,7 +394,7 @@ public enum EnumFacing {
                 case 2:
                     return new EnumFacing[]{EnumFacing.UP, EnumFacing.DOWN};
                 default:
-                    throw new Error("Someone\'s been tampering with the universe!");
+                    throw new Error("Someone's been tampering with the universe!");
             }
         }
 
@@ -426,7 +426,6 @@ public enum EnumFacing {
             try {
                 PLANE_LOOKUP[Plane.HORIZONTAL.ordinal()] = 1;
             } catch (NoSuchFieldError var11) {
-                ;
             }
 
             try {

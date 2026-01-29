@@ -1,4 +1,5 @@
 package ac.anticheat.vertex.listeners;
+
 import ac.anticheat.vertex.VertexAC;
 import ac.anticheat.vertex.checks.Check;
 import com.destroystokyo.paper.event.server.ServerTickEndEvent;
