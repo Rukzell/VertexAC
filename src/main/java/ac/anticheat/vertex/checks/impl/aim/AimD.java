@@ -14,12 +14,12 @@ public class AimD extends Check implements PacketCheck {
     private final List<Double> deltaYaws = new ArrayList<>();
 
     public AimD(APlayer aPlayer) {
-        super("AimD", aPlayer);
+        super("Aim", "(D)", aPlayer, false);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation())
+        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || aPlayer.rotationData.isCinematicRotation() || !aPlayer.actionData.inCombat())
             return;
 
         if (PacketUtil.isRotation(event)) {

@@ -39,6 +39,10 @@ public class PacketUtil {
         return false;
     }
 
+    public static boolean isFlying(PacketReceiveEvent event) {
+        return event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING;
+    }
+
     public static void push(APlayer player, PacketSendEvent event, int entityId, List<EntityData<?>> dataList) {
         event.setCancelled(true);
         WrapperPlayServerEntityMetadata metadata = new WrapperPlayServerEntityMetadata(entityId, (EntityMetadataProvider) dataList);

@@ -7,9 +7,6 @@ public interface PacketCheck {
     default void onPacketReceive(PacketReceiveEvent event) {
     }
 
-    default void onPacketSend(PacketSendEvent event) {
-    }
-
     default void onReload() {
     }
 }

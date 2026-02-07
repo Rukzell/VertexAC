@@ -2,7 +2,8 @@ package ac.anticheat.vertex.managers;
 
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.impl.aim.*;
-import ac.anticheat.vertex.checks.impl.aura.*;
+import ac.anticheat.vertex.checks.impl.autoclicker.AutoClickerA;
+import ac.anticheat.vertex.checks.impl.killaura.*;
 import ac.anticheat.vertex.player.APlayer;
 import org.bukkit.entity.Player;
 
@@ -34,7 +35,8 @@ public class CheckManager {
         playerChecks.add(new AimM(aPlayer));
         playerChecks.add(new AimN(aPlayer));
         playerChecks.add(new AimO(aPlayer));
-        playerChecks.add(new AimP(aPlayer));
+
+        playerChecks.add(new AutoClickerA(aPlayer));
 
         playerChecks.add(new AuraA(aPlayer));
         playerChecks.add(new AuraB(aPlayer));

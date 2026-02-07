@@ -7,6 +7,7 @@ import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.Hex;
 import ac.anticheat.vertex.utils.MessageUtils;
+import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
@@ -15,14 +16,15 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.List;
+
 public abstract class Check {
     public final APlayer aPlayer;
     private final String name;
+    private final String displayName;
     private final boolean experimental;
     private final String punishCommand;
     private final Plugin plugin;
-    public int hitCancelTicks;
-    public int hitTicksToCancel;
     private boolean enabled;
     private boolean alert;
     private int violations;
@@ -31,22 +33,23 @@ public abstract class Check {
     private String prefix = Config.getString("vertex.prefix", "vertex.prefix");
     private String rawMessage = Config.getString("alerts.message", "alerts.message");
     private long lastFlagTime = 0;
+    private boolean data;
 
     private long delayTaskRawDelay = Config.getInt(getConfigPath() + ".remove-violations-after", 300);
     private long delayTaskDelay = delayTaskRawDelay * 20;
 
     private BukkitTask decayTask;
 
-    public Check(String name, APlayer aPlayer) {
-        this.name = name;
+    public Check(String name, String type, APlayer aPlayer, boolean data) {
+        this.name = name + type.replace("(", "").replace(")", "");
+        this.displayName = name + " " + type;
         this.aPlayer = aPlayer;
         this.enabled = Config.getBoolean("checks." + name + ".enabled", true);
         this.experimental = name.contains("*");
         this.punishCommand = Config.getString("checks." + name + ".punish-command", "kick {player} #ff7b42Unfair Advantage");
         this.alert = Config.getBoolean("checks." + name + ".alert", true);
         this.maxViolations = Config.getInt("checks." + name + ".max-violations", 10000);
-        this.hitCancelTicks = Config.getInt("checks." + name + ".hit-cancel-ticks", 0);
-        this.hitTicksToCancel = 0;
+        this.data = data;
         this.plugin = VertexAC.get();
 
         startDecayTask();
@@ -66,9 +69,6 @@ public abstract class Check {
         }
 
         lastFlagTime = now;
-        if (!experimental) {
-            this.hitTicksToCancel += hitCancelTicks;
-        }
 
         if (violations < maxViolations) {
             violations++;
@@ -80,7 +80,7 @@ public abstract class Check {
                 rawMessage
                         .replace("{prefix}", prefix)
                         .replace("{player}", aPlayer.bukkitPlayer.getName())
-                        .replace("{check}", name)
+                        .replace("{check}", displayName)
                         .replace("{violations}", String.valueOf(violations))
         ).hoverEvent(
                 HoverEvent.showText(
@@ -168,11 +168,25 @@ public abstract class Check {
         return maxViolations;
     }
 
+    public boolean isData() {
+        return data;
+    }
+
+    protected double probability(double value, double min, double max, double sensitivity, boolean inverted) {
+        if (max <= min) return 0.0;
+
+        double x = (value - min) / (max - min);
+        x = Math.max(0.0, Math.min(1.0, x));
+
+        if (inverted) x = 1.0 - x;
+
+        return 1.0 / (1.0 + Math.exp(-sensitivity * (x - 0.5)));
+    }
+
     public void reload() {
         this.enabled = Config.getBoolean(getConfigPath() + ".enabled", true);
         this.alert = Config.getBoolean(getConfigPath() + ".alert", true);
         this.maxViolations = Config.getInt(getConfigPath() + ".max-violations", 10000);
-        this.hitCancelTicks = Config.getInt(getConfigPath() + ".hit-cancel-ticks", 0);
         this.decay = Config.getInt(getConfigPath() + ".decay", 1);
         this.delayTaskRawDelay = Config.getInt(getConfigPath() + ".remove-violations-after", 300);
         this.delayTaskDelay = delayTaskRawDelay * 20;

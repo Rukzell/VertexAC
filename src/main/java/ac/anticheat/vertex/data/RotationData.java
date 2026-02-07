@@ -5,6 +5,7 @@ import ac.anticheat.vertex.checks.type.PacketCheck;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.GraphUtil;
 import ac.anticheat.vertex.utils.PacketUtil;
+import ac.anticheat.vertex.utils.RunningMode;
 import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
@@ -27,13 +28,20 @@ public class RotationData extends Check implements PacketCheck {
     public float lastAccelYaw, lastAccelPitch;
     public float jerkYaw, jerkPitch;
     public float lastJerkYaw, lastJerkPitch;
+    public float gcdErrorYaw, gcdErrorPitch;
+    public float modeX = 0, modeY = 0;
+    public float sensitivityX = 0, sensitivityY = 0;
     private long lastSmooth = 0L, lastHighRate = 0L;
     private double lastDeltaXRot = 0.0, lastDeltaYRot = 0.0;
     private boolean cinematicRotation = false;
     private int isTotallyNotCinematic = 0;
+    private final RunningMode xRotMode = new RunningMode(80);
+    private final RunningMode yRotMode = new RunningMode(80);
+    private float lastXRot = 0.0f;
+    private float lastYRot = 0.0f;
 
     public RotationData(APlayer aPlayer) {
-        super("RotationData", aPlayer);
+        super("Rotation", "Data", aPlayer, false);
     }
 
     @Override
@@ -73,6 +81,45 @@ public class RotationData extends Check implements PacketCheck {
 
         jerkYaw = accelYaw - lastAccelYaw;
         jerkPitch = accelPitch - lastAccelPitch;
+
+        float absYaw = Math.abs(deltaYaw);
+        float absPitch = Math.abs(deltaPitch);
+
+        double divisorX = gcd(absYaw, lastXRot);
+        if (absYaw > 0 && absYaw < 5 && divisorX > 0.0001) {
+            xRotMode.add(divisorX);
+            lastXRot = absYaw;
+        }
+        if (xRotMode.size() > 15) {
+            RunningMode.ModeResult mr = xRotMode.getMode();
+            if (mr.count > 15) {
+                modeX = (float) mr.value;
+                sensitivityX = convertToSensitivity(modeX);
+            }
+        }
+
+        double divisorY = gcd(absPitch, lastYRot);
+        if (absPitch > 0 && absPitch < 5 && divisorY > 0.0001) {
+            yRotMode.add(divisorY);
+            lastYRot = absPitch;
+        }
+        if (yRotMode.size() > 15) {
+            RunningMode.ModeResult mr = yRotMode.getMode();
+            if (mr.count > 15) {
+                modeY = (float) mr.value;
+                sensitivityY = convertToSensitivity(modeY);
+            }
+        }
+
+        if (modeX > 0) {
+            double errorX = Math.abs(deltaYaw % modeX);
+            gcdErrorYaw = (float) Math.min(errorX, modeX - errorX);
+        } else gcdErrorYaw = 0;
+
+        if (modeY > 0) {
+            double errorY = Math.abs(deltaPitch % modeY);
+            gcdErrorPitch = (float) Math.min(errorY, modeY - errorY);
+        } else gcdErrorPitch = 0;
 
         processCinematic();
     }
@@ -145,6 +192,21 @@ public class RotationData extends Check implements PacketCheck {
 
         lastDeltaXRot = deltaYaw;
         lastDeltaYRot = deltaPitch;
+    }
+
+    private float convertToSensitivity(double mode) {
+        double v = mode / 0.15 / 8.0;
+        v = Math.cbrt(v);
+        return (float) ((v - 0.2) / 0.6);
+    }
+
+    private static double gcd(double a, double b) {
+        while (b > 0.000001) {
+            double t = b;
+            b = a % b;
+            a = t;
+        }
+        return a;
     }
 
     public boolean isCinematicRotation() {

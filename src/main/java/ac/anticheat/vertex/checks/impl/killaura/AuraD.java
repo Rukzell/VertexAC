@@ -1,4 +1,4 @@
-package ac.anticheat.vertex.checks.impl.aura;
+package ac.anticheat.vertex.checks.impl.killaura;
 
 import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
@@ -14,12 +14,12 @@ public class AuraD extends Check implements PacketCheck {
     private Location lastAttackerLocation;
 
     public AuraD(APlayer aPlayer) {
-        super("AuraD", aPlayer);
+        super("Aura", "(D)", aPlayer, false);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || !aPlayer.actionData.inCombat()) {
+        if (!isEnabled()) {
             return;
         }
 

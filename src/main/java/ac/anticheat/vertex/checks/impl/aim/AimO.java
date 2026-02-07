@@ -3,6 +3,8 @@ package ac.anticheat.vertex.checks.impl.aim;
 import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
+import ac.anticheat.vertex.config.CheckSettings;
+import ac.anticheat.vertex.config.ChecksConfig;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
@@ -13,23 +15,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AimO extends Check implements PacketCheck {
+    private final CheckSettings cfg;
     private final List<Double> deltaYaws = new ArrayList<>();
     private final List<Double> deltaPitches = new ArrayList<>();
     private final VlBuffer buffer = new VlBuffer();
-    private List<Double> lastDeltaYaws;
-    private List<Double> lastDeltaPitches;
-    private double maxBuffer;
-    private double bufferDecrease;
 
     public AimO(APlayer aPlayer) {
-        super("AimO", aPlayer);
-        this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 3);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
+        super("Aim", "(O)", aPlayer, false);
+        this.cfg = ChecksConfig.get().get(this.getName());
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation()) return;
+        if (!isEnabled() || aPlayer.rotationData.isCinematicRotation() || !aPlayer.actionData.inCombat()) return;
 
         if (PacketUtil.isRotation(event)) {
             double dy = Math.abs(aPlayer.rotationData.deltaYaw);
@@ -38,47 +36,27 @@ public class AimO extends Check implements PacketCheck {
             deltaYaws.add(dy);
             deltaPitches.add(dp);
 
-            if (deltaYaws.size() >= 40) {
-                if (lastDeltaYaws != null && lastDeltaYaws.size() == deltaYaws.size()) {
-                    double correlation = Statistics.spearmanCorrelation(deltaYaws, lastDeltaYaws);
-                    if (correlation > 0.7) {
-                        buffer.fail(2);
-                    } else if (correlation > 0.5) {
-                        buffer.fail(1);
-                    } else {
-                        buffer.setVl(buffer.getVl() - bufferDecrease);
-                    }
+            if (deltaYaws.size() >= 20) {
+                double std = Statistics.getStandardDeviation(deltaYaws);
+                double avg = Statistics.getAverage(deltaYaws);
+
+                if (std < 0.9 && avg > 1.9) {
+                    flag("stddevX=" + std + "\navgX=" + avg);
                 }
 
-                lastDeltaYaws = new ArrayList<>(deltaYaws);
                 deltaYaws.clear();
             }
 
-            if (deltaPitches.size() >= 40) {
-                if (lastDeltaPitches != null && lastDeltaPitches.size() == deltaPitches.size()) {
-                    double correlation = Statistics.spearmanCorrelation(deltaPitches, lastDeltaPitches);
-                    if (correlation > 0.7) {
-                        buffer.fail(2);
-                    } else if (correlation > 0.5) {
-                        buffer.fail(1);
-                    } else {
-                        buffer.setVl(buffer.getVl() - bufferDecrease);
-                    }
+            if (deltaPitches.size() >= 20) {
+                double std = Statistics.getStandardDeviation(deltaPitches);
+                double avg = Statistics.getAverage(deltaPitches);
+
+                if (std < 0.9 && avg > 1.9) {
+                    flag("stddevY=" + std + "\navgY=" + avg);
                 }
 
-                lastDeltaPitches = new ArrayList<>(deltaPitches);
                 deltaPitches.clear();
             }
-
-            if (buffer.getVl() > maxBuffer) {
-                flag("spearman correlation");
-            }
         }
-    }
-
-    @Override
-    public void onReload() {
-        this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 2);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
     }
 }

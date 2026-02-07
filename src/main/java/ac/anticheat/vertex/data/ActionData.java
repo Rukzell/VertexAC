@@ -23,10 +23,9 @@ public class ActionData extends Check implements PacketCheck {
     private boolean stopSprint = false;
     private int combatTicks;
     private Player pTarget;
-    private boolean digging = false;
 
     public ActionData(APlayer aPlayer) {
-        super("ActionData", aPlayer);
+        super("Action", "Data", aPlayer, false);
         this.combatTicks = Config.getInt(getConfigPath() + ".combat-ticks", 60);
     }
 
@@ -66,22 +65,12 @@ public class ActionData extends Check implements PacketCheck {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
-            WrapperPlayClientPlayerDigging wrapper = new WrapperPlayClientPlayerDigging(event);
-            switch (wrapper.getAction()) {
-                case START_DIGGING -> digging = true;
-                case CANCELLED_DIGGING -> digging = false;
-                case FINISHED_DIGGING -> digging = false;
-            }
-        }
-
         if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
             attack = false;
             interact = false;
             startSprint = false;
             stopSprint = false;
             swing = false;
-            digging = false;
         }
     }
 
@@ -131,9 +120,5 @@ public class ActionData extends Check implements PacketCheck {
 
     public void onReload() {
         this.combatTicks = Config.getInt(getConfigPath() + ".combat-ticks", 60);
-    }
-
-    public boolean isDigging() {
-        return digging;
     }
 }

@@ -3,28 +3,28 @@ package ac.anticheat.vertex.checks.impl.aim;
 import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
+import ac.anticheat.vertex.config.CheckSettings;
+import ac.anticheat.vertex.config.ChecksConfig;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 public class AimI extends Check implements PacketCheck {
+    private final CheckSettings cfg;
     private final VlBuffer buffer1 = new VlBuffer();
     private final VlBuffer buffer2 = new VlBuffer();
     private int yawStreak;
     private int pitchStreak;
-    private double maxBuffer;
-    private double bufferDecrease;
 
     public AimI(APlayer aPlayer) {
-        super("AimI", aPlayer);
-        maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.15);
+        super("Aim", "(I)", aPlayer, false);
+        this.cfg = ChecksConfig.get().get(this.getName());
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation())
+        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || aPlayer.rotationData.isCinematicRotation() || !aPlayer.actionData.inCombat())
             return;
 
         if (PacketUtil.isRotation(event)) {
@@ -42,7 +42,7 @@ public class AimI extends Check implements PacketCheck {
                 } else if (yawStreak > 2) {
                     buffer1.fail(1);
                 } else {
-                    buffer1.setVl(buffer1.getVl() - bufferDecrease);
+                    buffer1.setVl(buffer1.getVl() - cfg.bufferDecrease);
                 }
             } else {
                 yawStreak = 0;
@@ -57,27 +57,21 @@ public class AimI extends Check implements PacketCheck {
                 } else if (pitchStreak > 2) {
                     buffer2.fail(1);
                 } else {
-                    buffer2.setVl(buffer2.getVl() - bufferDecrease);
+                    buffer2.setVl(buffer2.getVl() - cfg.bufferDecrease);
                 }
             } else {
                 pitchStreak = 0;
             }
 
-            if (buffer1.getVl() > maxBuffer) {
+            if (buffer1.getVl() > cfg.maxBuffer) {
                 flag(String.format("streakYaw=%d", yawStreak));
                 buffer1.setVl(0);
             }
 
-            if (buffer2.getVl() > maxBuffer) {
+            if (buffer2.getVl() > cfg.maxBuffer) {
                 flag(String.format("streakPitch=%d", pitchStreak));
                 buffer2.setVl(0);
             }
         }
-    }
-
-    @Override
-    public void onReload() {
-        maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.05);
     }
 }

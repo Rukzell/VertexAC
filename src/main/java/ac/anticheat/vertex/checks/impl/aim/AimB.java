@@ -3,25 +3,25 @@ package ac.anticheat.vertex.checks.impl.aim;
 import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
+import ac.anticheat.vertex.config.CheckSettings;
+import ac.anticheat.vertex.config.ChecksConfig;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
 import ac.anticheat.vertex.utils.PacketUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 public class AimB extends Check implements PacketCheck {
+    private final CheckSettings cfg;
     private final VlBuffer buffer = new VlBuffer();
-    private double maxBuffer;
-    private double bufferDecrease;
 
     public AimB(APlayer aPlayer) {
-        super("AimB", aPlayer);
-        this.maxBuffer = Config.getInt(getConfigPath() + ".max-buffer", 9);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.5);
+        super("Aim", "(B)", aPlayer, false);
+        this.cfg = ChecksConfig.get().get(this.getName());
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation())
+        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || aPlayer.rotationData.isCinematicRotation() || !aPlayer.actionData.inCombat())
             return;
 
         if (PacketUtil.isRotation(event)) {
@@ -43,19 +43,13 @@ public class AimB extends Check implements PacketCheck {
 
             if (pitchRounded || yawRounded) {
                 buffer.fail(1);
-                if (buffer.getVl() > maxBuffer) {
+                if (buffer.getVl() > cfg.maxBuffer) {
                     flag(String.format("dYaw=%.5f\ndPitch=%.5f", deltaYaw, deltaPitch));
                     buffer.setVl(0);
                 }
             } else {
-                buffer.setVl(buffer.getVl() - bufferDecrease);
+                buffer.setVl(buffer.getVl() - cfg.bufferDecrease);
             }
         }
-    }
-
-    @Override
-    public void onReload() {
-        this.maxBuffer = Config.getInt(getConfigPath() + ".max-buffer", 9);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.5);
     }
 }

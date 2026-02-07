@@ -1,11 +1,13 @@
 package ac.anticheat.vertex;
 
 import ac.anticheat.vertex.commands.VertexCommand;
+import ac.anticheat.vertex.config.ChecksConfig;
+import ac.anticheat.vertex.config.MessagesConfig;
 import ac.anticheat.vertex.listeners.ConnectionListener;
 import ac.anticheat.vertex.listeners.InventoryListener;
 import ac.anticheat.vertex.listeners.PacketCheckListener;
-import ac.anticheat.vertex.listeners.TickListener;
 import ac.anticheat.vertex.managers.CheckManager;
+import ac.anticheat.vertex.utils.Config;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import org.bstats.bukkit.Metrics;
@@ -34,6 +36,9 @@ public class VertexAC extends JavaPlugin {
         connectionListener = new ConnectionListener();
         checkManager = new CheckManager();
         saveDefaultConfig();
+        Config.init(getConfig());
+        ChecksConfig.load();
+        MessagesConfig.load();
 
         registerPacketListeners();
 
@@ -65,7 +70,6 @@ public class VertexAC extends JavaPlugin {
     }
 
     private void registerBukkitListeners() {
-        getServer().getPluginManager().registerEvents(new TickListener(), this);
         getServer().getPluginManager().registerEvents(connectionListener, this);
     }
 }

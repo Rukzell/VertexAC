@@ -3,9 +3,9 @@ package ac.anticheat.vertex.checks.impl.aim;
 import ac.anticheat.vertex.buffer.VlBuffer;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
+import ac.anticheat.vertex.config.CheckSettings;
+import ac.anticheat.vertex.config.ChecksConfig;
 import ac.anticheat.vertex.player.APlayer;
-import ac.anticheat.vertex.utils.Config;
-import ac.anticheat.vertex.utils.Logger;
 import ac.anticheat.vertex.utils.MathUtil;
 import ac.anticheat.vertex.utils.PacketUtil;
 import ac.anticheat.vertex.utils.kireiko.millennium.math.Statistics;
@@ -15,22 +15,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AimL extends Check implements PacketCheck {
+    private final CheckSettings cfg;
     private final List<Double> deltaYaws = new ArrayList<>();
     private final List<Double> deltaPitches = new ArrayList<>();
     private final VlBuffer buffer = new VlBuffer();
     private final VlBuffer buffer2 = new VlBuffer();
-    private double maxBuffer;
-    private double bufferDecrease;
 
     public AimL(APlayer aPlayer) {
-        super("AimL", aPlayer);
-        this.maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        this.bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
+        super("Aim", "(L)", aPlayer, false);
+        this.cfg = ChecksConfig.get().get(this.getName());
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || !aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation()) return;
+        if (!isEnabled() || aPlayer.rotationData.isCinematicRotation() || !aPlayer.actionData.inCombat()) return;
 
         if (PacketUtil.isRotation(event)) {
             double deltaYaw = aPlayer.rotationData.deltaYaw;
@@ -40,44 +38,36 @@ public class AimL extends Check implements PacketCheck {
 
             if (deltaYaws.size() > 20) {
                 int signChanges = MathUtil.signChanges(deltaYaws);
-                double stddev = Math.abs(Statistics.getStandardDeviation(deltaYaws));
-                double k = Statistics.getKurtosis(deltaYaws);
+                double avg = Statistics.getAverage(deltaYaws);
 
-                if (signChanges > 15 && stddev < 2.5 && k < 0) {
+                if (signChanges > 15 && avg < 1.5) {
                     buffer.fail(2);
-                } else if (signChanges > 12 && stddev < 4 && k < 0) {
+                } else if (signChanges > 12) {
                     buffer.fail(0.9);
                 } else {
-                    buffer.setVl(buffer.getVl() - bufferDecrease);
+                    buffer.setVl(buffer.getVl() - cfg.bufferDecrease);
                 }
                 deltaYaws.remove(0);
             }
 
             if (deltaPitches.size() > 20) {
-                int signChanges = MathUtil.signChanges(deltaYaws);
-                double stddev = Math.abs(Statistics.getStandardDeviation(deltaYaws));
-                double k = Statistics.getKurtosis(deltaYaws);
+                int signChanges = MathUtil.signChanges(deltaPitches);
+                double avg = Statistics.getAverage(deltaPitches);
 
-                if (signChanges > 15 && stddev < 2.5 && k < 0) {
-                    buffer2.fail(2);
-                } else if (signChanges > 12 && stddev < 4 && k < 0) {
-                    buffer2.fail(0.9);
+                if (signChanges > 15 && avg < 1.5) {
+                    buffer.fail(2);
+                } else if (signChanges > 12) {
+                    buffer.fail(0.9);
                 } else {
-                    buffer2.setVl(buffer2.getVl() - bufferDecrease);
+                    buffer.setVl(buffer.getVl() - cfg.bufferDecrease);
                 }
                 deltaPitches.remove(0);
             }
 
-            if (buffer.getVl() > maxBuffer || buffer2.getVl() > maxBuffer) {
+            if (buffer.getVl() > cfg.maxBuffer || buffer2.getVl() > cfg.maxBuffer) {
                 flag("too many sign changes");
                 buffer.setVl(0);
             }
         }
-    }
-
-    @Override
-    public void onReload() {
-        maxBuffer = Config.getDouble(getConfigPath() + ".max-buffer", 1);
-        bufferDecrease = Config.getDouble(getConfigPath() + ".buffer-decrease", 0.25);
     }
 }

@@ -3,6 +3,10 @@ package ac.anticheat.vertex.commands;
 import ac.anticheat.vertex.VertexAC;
 import ac.anticheat.vertex.checks.Check;
 import ac.anticheat.vertex.checks.type.PacketCheck;
+import ac.anticheat.vertex.config.CheckSettings;
+import ac.anticheat.vertex.config.ChecksConfig;
+import ac.anticheat.vertex.config.Messages;
+import ac.anticheat.vertex.config.MessagesConfig;
 import ac.anticheat.vertex.managers.PlayerDataManager;
 import ac.anticheat.vertex.player.APlayer;
 import ac.anticheat.vertex.utils.Config;
@@ -13,6 +17,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.List;
 
 // wtf
 public class VertexCommand implements CommandExecutor {
@@ -36,6 +42,7 @@ public class VertexCommand implements CommandExecutor {
             case "checks" -> checks(sender);
             case "help" -> sendHelp(sender);
             case "alerts" -> toggleAlerts(sender);
+            case "debug" -> toggleDebug(sender);
             default -> sendHelp(sender);
         }
 
@@ -54,15 +61,11 @@ public class VertexCommand implements CommandExecutor {
             Logger.log(Hex.translateHexColors(Config.getString("messages.config.config-reload", "§aReloading config...")));
         }
         plugin.reloadConfig();
-
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            for (Check check : VertexAC.getCheckManager().getChecks(player)) {
-                if (check instanceof PacketCheck packetCheck) {
-                    packetCheck.onReload();
-                }
-                check.reload();
-            }
-        });
+        ChecksConfig.load();
+        Messages.load();
+        for (Check check : VertexAC.getCheckManager().getChecks((Player) sender)) {
+            check.reload();
+        }
 
         if (sender instanceof Player) {
             Logger.log((Player) sender, Hex.translateHexColors(Config.getString("messages.config.config-reloaded", "§aConfig reloaded")));

@@ -17,7 +17,7 @@ public class PacketData extends Check implements PacketCheck {
     private long lastElytraStart = -1;
 
     public PacketData(APlayer aPlayer) {
-        super("PacketData", aPlayer);
+        super("Packet", "Data", aPlayer, false);
     }
 
     @Override

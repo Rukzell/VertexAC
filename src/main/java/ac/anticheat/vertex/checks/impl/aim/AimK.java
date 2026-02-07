@@ -8,17 +8,17 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 
 public class AimK extends Check implements PacketCheck {
     public AimK(APlayer aPlayer) {
-        super("AimK", aPlayer);
+        super("Aim", "(K)", aPlayer, false);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || !aPlayer.actionData.inCombat() || aPlayer.bukkitPlayer.isInsideVehicle()) return;
+        if (!isEnabled() || aPlayer.bukkitPlayer.isInsideVehicle() || !aPlayer.actionData.inCombat()) return;
 
         if (PacketUtil.isRotation(event)) {
             double pitch = Math.abs(aPlayer.rotationData.pitch);
 
-            if (pitch > 90.1) {
+            if (pitch > 90.2) {
                 flag(String.format("pitch=%.5f", pitch));
             }
         }

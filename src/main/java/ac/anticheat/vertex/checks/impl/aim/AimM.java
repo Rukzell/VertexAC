@@ -15,29 +15,30 @@ public class AimM extends Check implements PacketCheck {
     private final List<Double> kurtosis = new ArrayList<>();
 
     public AimM(APlayer aPlayer) {
-        super("AimM", aPlayer);
+        super("Aim", "(M)", aPlayer, false);
     }
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!isEnabled() || !PacketUtil.isRotation(event)) return;
-        if (!aPlayer.actionData.inCombat() || aPlayer.rotationData.isCinematicRotation()) return;
+        if (!isEnabled() || aPlayer.rotationData.isCinematicRotation() || !aPlayer.actionData.inCombat()) return;
 
-        float yaw = aPlayer.rotationData.deltaYaw;
-        deltaYaws.add(yaw);
+        if (!PacketUtil.isRotation(event)) {
+            float deltaYaw = aPlayer.rotationData.deltaYaw;
+            deltaYaws.add(deltaYaw);
 
-        if (deltaYaws.size() > 30) {
-            double k = Statistics.getKurtosis(deltaYaws);
-            kurtosis.add(k);
-            deltaYaws.clear();
-        }
-
-        if (kurtosis.size() >= 20) {
-            double stddev = Math.abs(Statistics.getStandardDeviation(kurtosis));
-            if (stddev < 1) {
-                flag("stddev=" + stddev);
+            if (deltaYaws.size() > 30) {
+                double k = Statistics.getKurtosis(deltaYaws);
+                kurtosis.add(k);
+                deltaYaws.clear();
             }
-            kurtosis.clear();
+
+            if (kurtosis.size() >= 20) {
+                double stddev = Math.abs(Statistics.getStandardDeviation(kurtosis));
+                if (stddev < 1) {
+                    flag("stddev=" + stddev);
+                }
+                kurtosis.clear();
+            }
         }
     }
 }
